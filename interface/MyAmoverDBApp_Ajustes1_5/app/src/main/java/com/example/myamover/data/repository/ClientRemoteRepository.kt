@@ -1,76 +1,28 @@
 package com.example.myamover.data.repository
 
-import com.example.myamover.data.network.SupabaseClientProvider
 import com.example.myamover.data.remote.ClientRemote
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
-/**
- * ClientRemoteRepository
- *
- * Repositório responsável por todas as operações
- * relacionadas com CLIENTES no Supabase.
- *
- * Este repositório:
- * - fala diretamente com o Supabase (PostgREST)
- * - devolve modelos ClientRemote
- * - encapsula o acesso à base de dados
- *
- * Os ViewModels nunca devem aceder diretamente
- * ao Supabase, apenas através deste repositório.
- */
 class ClientRemoteRepository {
 
-    /**
-     * Cliente Supabase partilhado na aplicação.
-     *
-     * Fornecido pelo SupabaseClientProvider.
-     */
-    private val client = SupabaseClientProvider.client
-
-    /**
-     * Obtém TODOS os clientes da base de dados.
-     *
-     * Tabela usada:
-     * - "clients"
-     *
-     * Fluxo:
-     * ViewModel → Repository → Supabase → Repository → ViewModel
-     */
     suspend fun getAllClient():List<ClientRemote> = withContext(Dispatchers.IO){
-        client.postgrest["clients"]
-            .select()  //SELECT *FROM clients
-            .decodeList<ClientRemote>() // converte JSON -> List<ClientRemote>
+        emptyList()
     }
 
-
-    /*
-    Obtém um cliente específico pelo ID.
-     *
-     * @param clientId identificador do cliente
-     *
-     * Usado normalmente no detalhe da task
-     * para mostrar os dados do cliente associado.
-     */
     suspend fun getClientById(clientId: Int): ClientRemote = withContext(Dispatchers.IO) {
-        client.postgrest["clients"]
-            // Filtro WHERE id = clientId
-            // Confirma se o nome da coluna é "id" ou "ID" no Supabase
-            .select { filter { eq("ID", clientId) } } // ou "id"
-            .decodeSingle<ClientRemote>()
+        ClientRemote(id = clientId, name = "Mock", email = "", phone = "", address = "Mock Address", lat = 0.0, lng = 0.0)
     }
 }
 
 /*
 
-Porque existe um Repository entre ViewModel e Supabase
+Porque existe um Repository entre ViewModel e backend
 
-✔ Como funciona o acesso via PostgREST
+✔ Como funciona o acesso via API REST
 ✔ Onde alterar o nome da tabela/coluna
 ✔ Porque usar Dispatchers.IO para chamadas de rede
-✔ Diferença entre decodeList e decodeSingle
+✔ Diferença entre listas e objetos únicos
 
 Sugestões futuras (opcionais)
 

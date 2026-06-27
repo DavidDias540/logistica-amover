@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using projeto.Data;
 using projeto.Data.Models;
 using Task = projeto.Data.Models.Task;
@@ -40,16 +40,73 @@ namespace projeto.Services
             }
         }
 
+        public bool EditTask(Task t)
+        {
+            try
+            {
+                var target = _context.tasks.Find(t.ID);
+                if (target == null) return false;
+
+                if (target.vehicleID != t.vehicleID)
+                {
+                    target.vehicleID = t.vehicleID;
+                    if (t.vehicleID.HasValue)
+                    {
+                        var vehicle = _context.vehicles.FirstOrDefault(v => v.ID == t.vehicleID.Value);
+                        if (vehicle != null && vehicle.ownerID.HasValue)
+                        {
+                            target.userID = vehicle.ownerID;
+                        }
+                    }
+                }
+
+                target.status = t.status;
+                target.type = t.type;
+                target.description = t.description;
+                target.street = t.street;
+                target.door_number = t.door_number;
+                target.floor = t.floor;
+                target.postal_code = t.postal_code;
+                target.city = t.city;
+                target.instructions = t.instructions;
+                target.notes = t.notes;
+                target.priority = t.priority;
+
+                _context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao editar tarefa: " + ex.Message);
+            }
+        }
+
         public List<Task> GetTasks()
         {
             try
             {
                 var list = _context.tasks
-                    .Include(t => t.user)
                     .Include(t => t.service)
                     .Include(t => t.client)
+                    .ToList();
+
+                return list ?? new List<Task>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na BD: {ex.Message}");
+                throw;
+            }
+        }
+
+        public List<Task> GetTasksByDriver(int driverId)
+        {
+            try
+            {
+                var list = _context.tasks
+                    .Include(t => t.vehicle)
                     .Include(t => t.Nodes)
-                    .Include(t => t.plan)
+                    .Where(t => t.userID == driverId)
                     .ToList();
 
                 return list ?? new List<Task>();
@@ -67,6 +124,7 @@ namespace projeto.Services
             {
                 return _context.tasks
                     .Include(t => t.user)
+                    .Include(t => t.vehicle)
                     .Include(t => t.service)
                     .Include(t => t.client)
                     .Include(t => t.Nodes)
@@ -120,6 +178,25 @@ namespace projeto.Services
             if (node == null) return false;
 
             task.Nodes.Remove(node);
+            return _context.SaveChanges() > 0;
+        }
+
+        public bool UpdateNodeStatus(int taskID, int nodeID, string status)
+        {
+            var task = _context.tasks.Include(t => t.Nodes).FirstOrDefault(t => t.ID == taskID);
+            if (task == null) return false;
+
+            task.status = status;
+
+            if (task.Nodes != null)
+            {
+                var node = task.Nodes.FirstOrDefault(n => n.ID == nodeID);
+                if (node != null)
+                {
+                    node.status = status;
+                }
+            }
+            
             return _context.SaveChanges() > 0;
         }
     }

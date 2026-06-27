@@ -2,7 +2,6 @@ package com.example.myamover.data.model
 
 import com.example.myamover.data.remote.TaskRemote
 
-
 /**
  * Estado da UI para o ecrã de Tasks e Rota diária.
  *
@@ -11,69 +10,27 @@ import com.example.myamover.data.remote.TaskRemote
  */
 data class TaskRemoteUiState(
 
-    /**
-     * Indica se a lista de tarefas está a ser carregada.
-     *
-     * Normalmente usado para:
-     * - mostrar um CircularProgressIndicator
-     * - bloquear ações enquanto o GET /tasks está a decorrer
-     */
+    /** Indica se a lista de tarefas está a ser carregada. */
     val loading: Boolean = false,
 
-
-/**
- * Indica se a rota diária está a ser carregada/atualizada.
- *
- * Usado quando:
- * - a app chama GET /routes/*
- * - ou quando está a trocar a rota após "Complete Task"
-*/
- * */
+    /** Indica se a rota diária está a ser carregada ou atualizada. */
     val loadingRoute: Boolean = false,
 
-
-    /**
-     * Lista de tarefas recebidas do backend.
-     *
-     * Representa o resultado do GET /tasks.
-     * A UI usa esta lista para:
-     * - mostrar cards de tarefas
-     * - associar tarefas aos nós da rota
-     */
+    /** Lista de tarefas recebidas do backend. */
     val tasks: List<TaskRemote> = emptyList(),
 
-    /**
-     * Mensagem de erro a apresentar na UI.
-     *
-     * Exemplos:
-     * - erro de rede
-     * - erro do backend
-     * - falha ao carregar tarefas ou rota
-     */
+    /** Mensagem de erro a apresentar na UI (null se não houver erro). */
     val error: String? = null,
 
+    /** Rotas ativas do dia atual. */
+    val activeRoutes: List<com.example.myamover.data.remote.RouteGroupRemote> = emptyList(),
 
-    /**
-     * JSON bruto da rota diária (string).
-     *
-     * Campo legado / opcional.
-     * Era usado quando a rota vinha como String e precisava de parsing manual.
-     *
-     * Atualmente pode ser removido se estiveres a usar apenas `route: RouteJson`.
-     */
-    val todayRouteJson: String? = null,
+    /** Rotas finalizadas ou rotas históricas carregadas por data. */
+    val historyRoutes: List<com.example.myamover.data.remote.RouteGroupRemote> = emptyList(),
 
-    /**
-     * Rota diária já desserializada.
-     *
-     * Este é o campo principal usado pela UI para:
-     * - desenhar o mapa
-     * - mostrar a sequência de paragens
-     * - navegar para o detalhe da task
-     *
-     * É atualizado:
-     * - no load inicial da rota
-     * - ou diretamente após completar uma task (PATCH /tasks/{id})
-     */
-    val route: RouteJson? = null
+    /** Gatilho para iniciar automaticamente uma rota reotimizada após a conclusão de uma tarefa. Guarda o RouteGroupId. */
+    val autoStartRouteTrigger: String? = null,
+
+    /** IDs das rotas ativas que o utilizador já marcou como terminadas hoje na UI (Sim). */
+    val acknowledgedFinishedRoutes: Set<String> = emptySet()
 )

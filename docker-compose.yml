@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: ./BD-Logistica
+      dockerfile: Dockerfile
+    container_name: amover-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Fulgora2000
+      POSTGRES_DB: amover-data
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: amover-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./kc-export:/opt/keycloak/data/import
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: amover-backend
+    restart: always
+    ports:
+      - "5029:80" # Mapeia a porta 80 do contentor para a 5029 na sua máquina
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Ligação à Base de Dados Local (dentro da rede do docker-compose o host chama-se "db")
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=amover-data;Username=postgres;Password=Fulgora2000
+      # Configuração do Keycloak
+      # Nota: A API contacta o Keycloak através da rede interna do docker usando o nome do serviço 'keycloak'
+      - Keycloak__Authority=http://keycloak:8080/realms/amover-realm
+      - Keycloak__Audience=amover-api
+      - Keycloak__RequireHttpsMetadata=false
+      # Configuração de email via SendGrid
+      - Email__SmtpHost=smtp.sendgrid.net
+      - Email__SmtpPort=587
+      - Email__SmtpUser=apikey
+      - Email__SmtpPassword=SG.SUA_CHAVE_AQUI
+      - Email__FromEmail=davidrdias540@gmail.com
+      - Email__FromName=AMoVeR
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./PlataformaGestao
+    container_name: amover-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  routes-optimizer:
+    build:
+      context: "./routes/Projeto Final"
+      dockerfile: Dockerfile.python
+    container_name: amover-routes-optimizer
+    restart: always
+    ports:
+      - "5000:5000"
+
+  android-builder:
+    build:
+      context: ./interface/MyAmoverDBApp_Ajustes1_5
+      dockerfile: Dockerfile.android
+    container_name: amover-android-builder
+    restart: "no" # Executa a compilação e desliga o contentor para não gastar RAM
+    volumes:
+      - ./builds_móvel:/out
+
+volumes:
+  postgres_data:

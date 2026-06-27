@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using projeto.Data.Models;
 using Task = projeto.Data.Models.Task;
 
@@ -20,9 +20,13 @@ namespace projeto.Data
         public DbSet<Alert> alerts { get; set; }
         public DbSet<Models.LocationNode> routes { get; set; }
         public DbSet<LocationNode> locationNodes { get; set; }
+        public DbSet<CanceledRouteLog> canceledRouteLogs { get; set; }
         public DbSet<ApiKey> apiKeys { get; set; }
         public DbSet<MessageLog> messageLogs { get; set; }
         public DbSet<Client> clients { get; set; }
+        public DbSet<Maintenance> maintenances { get; set; }
+        public DbSet<AssistanceRequest> assistanceRequests { get; set; }
+        public DbSet<AssistanceMessage> assistanceMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -54,6 +58,23 @@ namespace projeto.Data
                 .WithOne(t => t.plan)
                 .HasForeignKey(t => t.planID)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Task>()
+                .HasMany(t => t.Nodes)
+                .WithMany(n => n.tasks)
+                .UsingEntity<LocationNodeTask>(
+                    j => j
+                        .HasOne(pt => pt.LocationNode)
+                        .WithMany(t => t.LocationNodeTasks)
+                        .HasForeignKey(pt => pt.NodeID),
+                    j => j
+                        .HasOne(pt => pt.Task)
+                        .WithMany(p => p.LocationNodeTasks)
+                        .HasForeignKey(pt => pt.TaskID),
+                    j =>
+                    {
+                        j.HasKey(t => new { t.NodeID, t.TaskID });
+                    });
+
             //modelBuilder.Entity<Task>()
             //    .HasMany(t => t.subTasks)
             //    .WithOne(t => t.parentTask)
@@ -71,9 +92,6 @@ namespace projeto.Data
             modelBuilder.Entity<Task>()
                 .Property(t => t.recurrence)
                 .HasConversion<string>();
-            modelBuilder.Entity<Task>()
-                .HasMany(t => t.Nodes)
-                .WithMany(n => n.tasks);
             //modelBuilder.Entity<Models.LocationNode>()
             //    .HasMany(r => r.nodes)
             //    .WithMany(n => n.routes);
@@ -87,6 +105,7 @@ namespace projeto.Data
                 .WithOne(u => u.company)
                 .HasForeignKey(u => u.companyID)
                 .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
     }

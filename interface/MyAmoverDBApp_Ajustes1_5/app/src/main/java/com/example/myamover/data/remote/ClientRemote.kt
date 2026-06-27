@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * ClientRemote
  *
  * Modelo de dados que representa um cliente
- * tal como vem do backend (API / Supabase).
+ * tal como vem do backend.
  *
  * Este modelo é usado sobretudo:
  * - quando carregas clientes da API

@@ -2,6 +2,7 @@ package com.example.myamover.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
@@ -71,6 +72,13 @@ sealed class NavigationItem (
      * Mostra tarefas concluídas anteriormente.
      */
     object History : NavigationItem("history", Icons.Filled.History, R.string.history)
+
+    /**
+     * Ecrã de Assistência / Chat.
+     *
+     * Permite ao condutor comunicar com a gestão.
+     */
+    object Assistance : NavigationItem("assistance", Icons.Filled.Email, R.string.assistance)
 
     /**
      * Ecrã de detalhe de uma tarefa ativa.

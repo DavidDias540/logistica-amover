@@ -21,6 +21,9 @@ object NavRoutes {
     // Rota do ecrã de Login - É o startDestination da aplicação
     const val Login = "login"
 
+    const val ChangePassword = "change_password/{email}"
+    fun changePassword(email: String) = "change_password/$email"
+
     /*Rota base do ecrã Home (sem argumentos) - Normalmente não é usada diretamente,
      pois o Home recebe o email como argumento*/
     const val Home = "home"
@@ -50,6 +53,12 @@ object NavRoutes {
 
     //Rota do ecrã de Histórico
     const val History = "history"
+
+    // Rota do ecrã de Perfil
+    const val Profile = "profile"
+
+    // Rota do ecrã de Assistência / Chat
+    const val Assistance = "assistance"
 
     // Rota base do detalhe de uma tarefa ativa (sem argumentos - Normalmente usada apenas como base
     const val TaskDetail = "TaskDetail"

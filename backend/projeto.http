@@ -1,6 +1,0 @@
-@projeto_HostAddress = http://localhost:5029
-
-GET {{projeto_HostAddress}}/GetAlertas/
-Accept: application/json
-
-###

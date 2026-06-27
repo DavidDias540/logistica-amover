@@ -9,5 +9,9 @@ data class UserRemote (
     @SerialName("id")
     val id: Long? = null,      // int8 (opcional)
     val name: String,
-    val uuid: String           // UUID do auth.user.id
+    val uuid: String? = null,  // UUID do auth.user.id
+    val photoUrl: String? = null,
+    val email: String? = null,
+    @SerialName("requiresPasswordChange")
+    val requiresPasswordChange: Boolean? = false
 )

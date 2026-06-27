@@ -1,7 +1,6 @@
 [versions]
 accompanistPermissions = "<version>"
 agp = "8.12.3"
-authKt = "3.2.5"
 datastorePreferences = "1.1.7"
 firebaseBom = "34.3.0"
 kotlin = "2.2.20"
@@ -22,8 +21,6 @@ mapsCompose = "6.11.0"
 material3WindowSizeClass = "1.4.0"
 material3 = "1.4.0"
 navigationCompose = "2.9.5"
-postgrestKt = "3.2.5"
-realtimeKt = "3.2.5"
 retrofit = "3.0.0"
 retrofit2KotlinxSerializationConverter = "1.0.0"
 roomCompiler = "2.8.1"
@@ -31,7 +28,6 @@ roomKtx = "2.8.1"
 roomRuntime = "2.8.1"
 runtime = "1.9.2"
 secretsGradlePlugin = "2.0.1"
-supabaseKt = "3.2.5"
 ui = "1.9.2"
 ksp = "2.2.0-2.0.2"
 lifecycleViewmodelSavedstate = "2.9.4"
@@ -55,7 +51,6 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "runtime" }
-auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "authKt" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -82,12 +77,9 @@ logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", ver
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt", version.ref = "postgrestKt" }
-realtime-kt = { module = "io.github.jan-tennert.supabase:realtime-kt", version.ref = "realtimeKt" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit2-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofit2KotlinxSerializationConverter" }
 secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
-supabase-kt = { module = "io.github.jan-tennert.supabase:supabase-kt", version.ref = "supabaseKt" }
 ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }

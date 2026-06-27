@@ -3,7 +3,6 @@ package com.example.myamover.screens.maps
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myamover.data.model.RouteJson
 import com.example.myamover.data.network.RoutesApiClient
 import com.example.myamover.data.network.computePolylineChunked
 import com.example.myamover.location.getLastKnownLatLng
@@ -32,14 +31,6 @@ class MapRouteViewModel(
 
     private val _ui = MutableStateFlow(MapUiState())
     val ui: StateFlow<MapUiState> = _ui
-
-//    fun ensureMyLocation() {
-//        viewModelScope.launch {
-//            if (_ui.value.myLocation != null) return@launch
-//            val me = getLastKnownLatLng(getApplication())
-//            _ui.value = _ui.value.copy(myLocation = me)
-//        }
-//    }
 
     private fun distanceMeters(a: LatLng, b: LatLng): Double {
         val R = 6371000.0
@@ -76,85 +67,4 @@ class MapRouteViewModel(
             }
         }
     }
-
-    fun routeFullFromJson(route: RouteJson) {
-        viewModelScope.launch {
-            _ui.value = _ui.value.copy(loading = true, error = null, routePolyline = emptyList())
-//            val me = _ui.value.myLocation ?: getLastKnownLatLng(getApplication())
-//            if (me == null) {
-//                _ui.value = _ui.value.copy(loading = false, error = "Sem localização atual (liga o GPS).")
-//                return@launch
-//            }
-//            _ui.value = _ui.value.copy(myLocation = me)
-
-            runCatching {
-                val pts = route.nodes.map { n ->
-                    // ✅ Ajusta aqui se o teu RouteJson.Node não tiver x/y
-                    LatLng(n.y, n.x) // y=lat, x=lng
-                }
-                val poly = computePolylineChunked(routesApi, pts)
-                Pair(poly, pts)
-            }.onSuccess { (poly, pts) ->
-                _ui.value = _ui.value.copy(
-                    loading = false,
-                    routePolyline = poly,
-                    markers = pts
-                )
-            }.onFailure { e ->
-                _ui.value = _ui.value.copy(loading = false, error = e.message ?: "Erro a calcular rota")
-            }
-        }
-    }
-
-
-    fun routeFullFromJsonStartingAt(route: RouteJson, start: LatLng) {
-        viewModelScope.launch {
-            _ui.value = _ui.value.copy(loading = true, error = null, routePolyline = emptyList())
-            val me = _ui.value.myLocation ?: getLastKnownLatLng(getApplication())
-            if (me == null) {
-                _ui.value = _ui.value.copy(loading = false, error = "Sem localização atual (liga o GPS).")
-                return@launch
-            }
-            _ui.value = _ui.value.copy(myLocation = me)
-
-            runCatching {
-                // 1) converter nós do JSON para LatLng
-                val stops = route.nodes.map { n ->
-                    LatLng(n.y, n.x) // y=lat, x=lng
-                }
-
-                if (stops.isEmpty()) {
-                    return@runCatching Triple(emptyList<LatLng>(), listOf(start), start)
-                }
-
-                // 2) montar lista que começa SEMPRE no "start"
-                // (se o primeiro stop for praticamente igual ao start, não duplica)
-                val points = if (distanceMeters(start, stops.first()) < 30.0) {
-                    listOf(start) + stops.drop(1)
-                } else {
-                    listOf(start) + stops
-                }
-
-                // 3) calcular polyline (rota em estradas) em chunks
-                val poly = computePolylineChunked(routesApi, points)
-
-                // 4) devolver polyline + markers
-                Triple(poly, points, start)
-            }.onSuccess { (poly, points, startUsed) ->
-                _ui.value = _ui.value.copy(
-                    loading = false,
-                    error = null,
-                    myLocation = startUsed,
-                    routePolyline = poly,
-                    markers = points
-                )
-            }.onFailure { e ->
-                _ui.value = _ui.value.copy(
-                    loading = false,
-                    error = e.message ?: "Erro a calcular rota"
-                )
-            }
-        }
-    }
-
 }

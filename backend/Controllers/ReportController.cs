@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using projeto.Data.Models;
 
 namespace projeto.Controllers
 {
+    [Authorize(Roles = "admin")]
     [ApiController]
     [Route("[controller]")]
     public class ReportController : ControllerBase
@@ -48,3 +50,4 @@ namespace projeto.Controllers
         */
     }
 }
+

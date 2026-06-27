@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.myamover.data.remote.ClientRemote
+import com.example.myamover.data.remote.LocationNodeRemote
 import com.example.myamover.data.remote.TaskRemote
 import com.example.myamover.data.repository.AuthRepository
 import com.example.myamover.data.repository.ClientRemoteRepository
@@ -38,7 +39,7 @@ fun TaskDetailRoute(
 
     var task by remember { mutableStateOf<TaskRemote?>(null) }
     var client by remember { mutableStateOf<ClientRemote?>(null) }
-    var node by remember { mutableStateOf<RouteNode?>(null) }
+    var node by remember { mutableStateOf<LocationNodeRemote?>(null) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -50,7 +51,7 @@ fun TaskDetailRoute(
         )
     }
 
-    LaunchedEffect(taskId, uiState.route) {
+    LaunchedEffect(taskId) {
         loading = true
         errorMessage = null
         task = null
@@ -58,16 +59,6 @@ fun TaskDetailRoute(
         node = null
 
         runCatching {
-            if (uiState.route == null) {
-                vm.loadTodayRoute()
-            }
-
-            val route = vm.ui.value.route
-                ?: throw IllegalStateException("Não foi possível obter a rota do dia.")
-
-            val foundNode = route.nodes.firstOrNull { it.idTask == taskId }
-                ?: throw IllegalStateException("Não encontrei o node (JSON) para taskId=$taskId")
-
             val courierId = courierRepo.getCourierIdByCurrentUser()
 
             val foundTask = taskRepo
@@ -75,13 +66,14 @@ fun TaskDetailRoute(
                 .firstOrNull { it.id == taskId }
                 ?: throw IllegalStateException("Task não encontrada (id=$taskId)")
 
-            val clientId = foundTask.client_id
-                ?: throw IllegalStateException("Task id=$taskId veio sem client_id.")
+            val foundNode = foundTask.nodes?.firstOrNull()
 
-            val foundClient = clientRepo
-                .getAllClient()
-                .firstOrNull { it.id == clientId }
-                ?: throw IllegalStateException("Cliente não encontrado (id=$clientId)")
+            val clientId = foundTask.clientID
+            val foundClient = if (clientId != null) {
+                clientRepo.getAllClient().firstOrNull { it.id == clientId }
+            } else {
+                null
+            } ?: com.example.myamover.data.remote.ClientRemote(id = 0, name = "Sem Cliente", phone = "", address = "", lat = 0.0, lng = 0.0)
 
             Triple(foundTask, foundClient, foundNode)
         }.onSuccess { (foundTask, foundClient, foundNode) ->
@@ -113,19 +105,28 @@ fun TaskDetailRoute(
             )
         }
 
-        task != null && client != null && node != null -> {
+        task != null && client != null -> {
             TaskDetailScreen(
                 task = task!!,
                 client = client!!,
-                node = node!!,
+                node = node,
                 onComplete = { status, photos, signatureUri, notes ->
                     vm.completeTaskAndRefresh(
                         taskId = taskId,
+                        nodeId = node?.id ?: 0,
                         status = status,
                         notes = notes,
                         photos = photos,
                         signature = signatureUri,
-                        onSuccess = { onBack() },
+                        onSuccess = { 
+                            val routeGroup = vm.ui.value.activeRoutes.find { group -> 
+                                group.routePoints.any { it.task.id == taskId } 
+                            }
+                            if (routeGroup != null) {
+                                vm.triggerAutoStartRoute(routeGroup.id)
+                            }
+                            onBack() 
+                        },
                         onError = { msg -> errorMessage = msg }
                     )
                 }

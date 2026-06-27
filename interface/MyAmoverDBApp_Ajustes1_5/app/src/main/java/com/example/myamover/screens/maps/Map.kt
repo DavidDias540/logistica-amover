@@ -37,8 +37,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myamover.BuildConfig
 import com.example.myamover.R
-import com.example.myamover.data.model.RouteJson
-import com.example.myamover.route.utils.nextStop
 import com.example.myamover.route.utils.openWazeToStop
 import com.example.myamover.route.utils.startNavigationTo
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -58,18 +56,11 @@ fun MapScreen(
     windowSize: WindowWidthSizeClass,
     modifier: Modifier = Modifier,
     mode: MapMode,
-    todayRoute: RouteJson? = null
 ) {
     val context = LocalContext.current
 
     // --- estado local do "próximo stop" ---
     var currentStopIndex by rememberSaveable { mutableStateOf(1) }
-
-// rota do dia (FullRoute)
-    val route = todayRoute
-
-// calcula a próxima paragem
-    val stop = route?.let { nextStop(it, currentStopIndex) }
 
     var granted by remember {
         mutableStateOf(
@@ -128,11 +119,10 @@ fun MapScreen(
 //    }
 
 
-    //apagar depois
-    LaunchedEffect(mode, todayRoute) {
+    LaunchedEffect(mode) {
         when (mode) {
             is MapMode.ToSingleStop -> vm.routeToSingleStop(LatLng(mode.lat, mode.lng))
-            MapMode.FullRoute -> todayRoute?.let { vm.routeFullFromJson(it) }
+            MapMode.FullRoute -> { /* Rota completa gerida pela lista de tarefas */ }
         }
     }
 
@@ -186,56 +176,46 @@ fun MapScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // ✅ Google: rota completa
-            Button(
-                enabled = stop != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primaryContainer,
-                    contentColor = colorScheme.scrim
-                ),
-                onClick = {
-                    stop?.let {
-                        startNavigationTo(context, it.y, it.x)
-                        currentStopIndex += 1
+            // Navegar para a próxima paragem individualmente
+            if (mode is MapMode.ToSingleStop) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.scrim
+                    ),
+                    onClick = {
+                        startNavigationTo(context, mode.lat, mode.lng)
+                    }
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.googlemaps),
+                            contentDescription = "Google Maps",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Google")
                     }
                 }
-            ) {
-                Text(if (stop == null) "" else "Google")
-                Row(verticalAlignment = Alignment.CenterVertically) {
 
-                    Icon(
-                        painter = painterResource(R.drawable.googlemaps),
-                        contentDescription = "Google Maps",
-                        modifier = Modifier.size(20.dp)
-                    )
-
-                    Spacer(Modifier.width(8.dp))
-                }
-            }
-
-            Button(
-                enabled = stop != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primaryContainer,
-                    contentColor = colorScheme.scrim
-                ),
-                onClick = {
-                    stop?.let {
-                        openWazeToStop(context, it.y, it.x)
-                        currentStopIndex += 1
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.scrim
+                    ),
+                    onClick = {
+                        openWazeToStop(context, mode.lat, mode.lng)
                     }
-                }
-            ) {
-                Text(if (stop == null) "" else "Waze")
-                Row(verticalAlignment = Alignment.CenterVertically) {
-
-                    Icon(
-                        painter = painterResource(R.drawable.waze),
-                        contentDescription = "Waze",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.waze),
+                            contentDescription = "Waze",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Waze")
+                    }
                 }
             }
         }

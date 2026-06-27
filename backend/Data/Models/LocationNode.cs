@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace projeto.Data.Models
@@ -17,11 +17,14 @@ namespace projeto.Data.Models
         public TimeSpan? availableTimeStart { get; set; }
         public TimeSpan? availableTimeEnds { get; set; }
 
+        public string status { get; set; } = "Pending";
+
         //FK
 
         //NAV
 
         public virtual List<Task>? tasks { get; set; }
+        public virtual List<LocationNodeTask>? LocationNodeTasks { get; set; }
 
         //[JsonIgnore]
         //public virtual List<LocationNode> routes { get; set; }

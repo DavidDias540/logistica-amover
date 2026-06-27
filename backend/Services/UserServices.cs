@@ -1,4 +1,4 @@
-﻿using projeto.Data;
+using projeto.Data;
 using projeto.Data.Models;
 using Microsoft.EntityFrameworkCore; // Adicionado para suporte a consultas mais complexas
 
@@ -24,7 +24,7 @@ namespace projeto.Services
             }
         }
 
-        public void CreateUser(User u, int companyID)
+        public void CreateUser(User u, int? companyID)
         {
             try
             {
@@ -88,6 +88,13 @@ namespace projeto.Services
                 target.email = u.email;
                 target.password = u.password;
                 target.role = u.role;
+                target.driverLicense = u.driverLicense;
+                target.citizenCard = u.citizenCard;
+                target.phone = u.phone;
+                target.address = u.address;
+                target.photoUrl = u.photoUrl;
+                target.is_active = u.is_active;
+                target.companyID = u.companyID;
                 _context.SaveChanges();
                 return true;
             }

@@ -1,0 +1,14 @@
+FROM mingc/android-build-box:latest
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copia o código fonte da app
+COPY . /app/
+
+# Dá permissão de execução ao Gradle
+RUN chmod +x ./gradlew
+
+# Comando padrão para compilar a app em modo Debug e copiar para a pasta /out
+RUN cat app/src/main/java/com/example/myamover/data/model/TaskRemoteUiState.kt
+CMD ./gradlew assembleDeviceDebug --no-daemon && cp -r app/build/outputs/apk/device/debug/* /out/

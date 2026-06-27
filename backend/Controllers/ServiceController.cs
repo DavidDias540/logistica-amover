@@ -1,54 +1,70 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using projeto.Data;
 using projeto.Data.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace projeto.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ServiceController : ControllerBase
     {
-        private readonly DatabaseOperations _db;
+        private readonly AMoverContext _db;
         private readonly ILogger<ServiceController> _logger;
 
-        public ServiceController(ILogger<ServiceController> logger, DatabaseOperations db)
+        public ServiceController(ILogger<ServiceController> logger, AMoverContext db)
         {
             _logger = logger;
             _db = db;
         }
 
-        [HttpPost(Name = "PostService")]
-        public void Post(string type, string description, string status, int ID)
+        [HttpPost]
+        public IActionResult Post([FromBody] Service service)
         {
-            _db.CreateService(type, description, status, ID);
-            return;
+            _db.services.Add(service);
+            _db.SaveChanges();
+            return Ok(service);
         }
 
-        [HttpGet(Name = "GetServices")]
+        [HttpGet]
         public IEnumerable<Service> Get()
         {
-            List<Service> reply = _db.GetServices();
-            return reply;
+            return _db.services.ToList();
         }
 
-        [HttpGet("{id}", Name = "GetService")]
-        public Service Get(int id)
+        [HttpGet("{id}")]
+        public IActionResult Get(int id)
         {
-            Service reply = _db.GetService(id);
-            return reply;
+            var service = _db.services.FirstOrDefault(s => s.ID == id);
+            if (service == null) return NotFound();
+            return Ok(service);
         }
 
-        [HttpPut("{id}", Name = "PutService")]
-        public void Put(int id, string type, string description, string status, int ID)
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] Service service)
         {
-            _db.EditService(id, type, description, status, ID);
-            return;
+            var existing = _db.services.FirstOrDefault(s => s.ID == id);
+            if (existing == null) return NotFound();
+            
+            existing.description = service.description;
+            existing.category = service.category;
+            existing.companyID = service.companyID;
+            
+            _db.SaveChanges();
+            return Ok(existing);
         }
 
-        [HttpDelete("{id}", Name = "DeleteService")]
-        public void Delete(int id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
-            _db.DeleteService(id);
-            return;
+            var existing = _db.services.FirstOrDefault(s => s.ID == id);
+            if (existing == null) return NotFound();
+            
+            _db.services.Remove(existing);
+            _db.SaveChanges();
+            return Ok();
         }
     }
 }

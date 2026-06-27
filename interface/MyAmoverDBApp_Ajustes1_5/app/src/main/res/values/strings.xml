@@ -70,6 +70,18 @@
     <string name="view_on_map">View on Map</string>
     <string name="window">Window:</string>
     <string name="hello">Hello</string>
-
-
-</resources>
+    <string name="assigned_motorcycle">Assigned motorcycle:</string>
+    <string name="logistics">Logistics</string>
+    <string name="user_profile">User Profile</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="account_info">Account Information</string>
+    <string name="name_label">Name</string>
+    <string name="email_label">Email</string>
+    <string name="no_route_day">No route found for this day.</string>
+    <string name="route_completed">Route Completed</string>
+    <string name="route_pending">Route Pending</string>
+    <string name="no_photo">No Photo</string>
+    <string name="vehicle">Vehicle</string>
+    <string name="select_a_date">Select a date</string>
+    <string name="stops">Stops</string>
+    <string name="assistance">Assistance</string></resources>

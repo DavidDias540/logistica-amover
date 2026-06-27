@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using projeto.Authentication;
 using projeto.Data.Models;
@@ -6,6 +7,7 @@ using projeto.Services;
 namespace projeto.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "admin,motorista")]
     [ApiController]
     public class MessageController : ControllerBase
     {
@@ -34,15 +36,15 @@ namespace projeto.Controllers
                     {
                         status = "invalid_vin",
                         code = 400,
-                        description = "O VIN indicado não corresponde a nenhum veículo registado"
+                        description = "O VIN indicado nÃ£o corresponde a nenhum veÃ­culo registado"
                     });
                 }
 
-                // 2. Verificar conteúdo da mensagem (exemplo simples)
+                // 2. Verificar conteÃºdo da mensagem (exemplo simples)
                 if (string.IsNullOrEmpty(messageDto.Message) || string.IsNullOrEmpty(messageDto.Sender))
                 {
-                     // Embora o PDF não especifique um erro 400 para body inválido, é boa prática.
-                     // Vou assumir processamento genérico de erro ou sucesso por enquanto.
+                     // Embora o PDF nÃ£o especifique um erro 400 para body invÃ¡lido, Ã© boa prÃ¡tica.
+                     // Vou assumir processamento genÃ©rico de erro ou sucesso por enquanto.
                 }
 
                 // 3. Registar a mensagem
@@ -61,7 +63,7 @@ namespace projeto.Controllers
                 {
                     status = "accepted",
                     code = 200,
-                    description = "Mensagem recebida com sucesso pelo backend e será processada"
+                    description = "Mensagem recebida com sucesso pelo backend e serÃ¡ processada"
                 });
 
             }
@@ -84,3 +86,4 @@ namespace projeto.Controllers
         public string Sender { get; set; }
     }
 }
+

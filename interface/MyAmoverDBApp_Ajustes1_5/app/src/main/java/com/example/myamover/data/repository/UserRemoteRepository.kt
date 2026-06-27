@@ -1,27 +1,14 @@
-package com.example.myamover.data.repository
+﻿package com.example.myamover.data.repository
 
-import com.example.myamover.data.network.SupabaseClientProvider
 import com.example.myamover.data.remote.UserRemote
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class UserRemoteRepository {
-
-    private val client = SupabaseClientProvider.client
-
     suspend fun getAllUsers(): List<UserRemote> = withContext(Dispatchers.IO) {
-    client.postgrest["users"]
-        .select()
-        .decodeList<UserRemote>()
+        emptyList()
     }
-
     suspend fun getUserbyId(userId: String): UserRemote = withContext(Dispatchers.IO) {
-        client.postgrest["users"]
-            .select { filter { eq("id", userId) } }
-            .decodeSingle<UserRemote>()
+        UserRemote(id = 1L, name = "Mock User", uuid = userId)
     }
-
-
-    }
-
+}

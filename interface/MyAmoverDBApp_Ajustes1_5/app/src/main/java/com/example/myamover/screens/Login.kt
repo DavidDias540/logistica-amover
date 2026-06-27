@@ -18,11 +18,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myamover.R
@@ -112,11 +115,18 @@ fun LoginScreen(
             // protegemos o email para meter na rota (nav routes não gostam de caracteres especiais tipo '@')
             val encodedEmail = user.email.replace("@", "%40")
 
-            navController.navigate("home/$encodedEmail") {
-                // remove o login do histórico para não voltar atrás com back
-                popUpTo(NavRoutes.Login) { inclusive = true }
-                // Evita múltiplas instâncias da mesma screen
-                launchSingleTop = true
+            if (user.requiresPasswordChange) {
+                navController.navigate(NavRoutes.changePassword(encodedEmail)) {
+                    popUpTo(NavRoutes.Login) { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                navController.navigate(NavRoutes.home(encodedEmail)) {
+                    // remove o login do histórico para não voltar atrás com back
+                    popUpTo(NavRoutes.Login) { inclusive = true }
+                    // Evita múltiplas instâncias da mesma screen
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -138,7 +148,7 @@ fun LoginScreen(
                 Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .background(colorScheme.onPrimary),
+                    .background(colorScheme.primary),
             )
             Surface(
                 modifier = Modifier
@@ -165,7 +175,7 @@ fun LoginScreen(
                         ),
                     ) {
                         Text(
-                            "Logistic",
+                            text = stringResource(id = R.string.logistics),
                             style = MaterialTheme.typography.titleLarge,
                             color = colorScheme.secondary
                         )
@@ -223,14 +233,14 @@ fun LoginScreen(
             },
             label = {
                 Text(
-                    emailError.ifEmpty { "Email" },
+                    emailError.ifEmpty { stringResource(id = R.string.email_label) },
                     color = if (emailError.isNotEmpty()) colorScheme.error else Color.Unspecified
                 )
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Email"
+                    contentDescription = stringResource(id = R.string.email_label)
                 )
             },
             modifier = Modifier
@@ -242,6 +252,14 @@ fun LoginScreen(
                 unfocusedContainerColor = colorScheme.surfaceContainerLowest,
                 disabledContainerColor = Color.LightGray,
                 errorContainerColor = colorScheme.errorContainer,
+                focusedIndicatorColor = colorScheme.primary,
+                unfocusedIndicatorColor = colorScheme.primary,
+                focusedTextColor = colorScheme.primary,
+                unfocusedTextColor = colorScheme.primary,
+                focusedLabelColor = colorScheme.primary,
+                unfocusedLabelColor = colorScheme.primary,
+                focusedLeadingIconColor = colorScheme.primary,
+                unfocusedLeadingIconColor = colorScheme.primary,
             ),
             singleLine = true,
             isError = emailError.isNotEmpty()
@@ -295,6 +313,16 @@ fun LoginScreen(
                 unfocusedContainerColor = colorScheme.surfaceContainerLowest,
                 disabledContainerColor = Color.LightGray,
                 errorContainerColor = colorScheme.errorContainer,
+                focusedIndicatorColor = colorScheme.primary,
+                unfocusedIndicatorColor = colorScheme.primary,
+                focusedTextColor = colorScheme.primary,
+                unfocusedTextColor = colorScheme.primary,
+                focusedLabelColor = colorScheme.primary,
+                unfocusedLabelColor = colorScheme.primary,
+                focusedLeadingIconColor = colorScheme.primary,
+                unfocusedLeadingIconColor = colorScheme.primary,
+                focusedTrailingIconColor = colorScheme.primary,
+                unfocusedTrailingIconColor = colorScheme.primary,
             ),
             singleLine = true,
             isError = passwordError.isNotEmpty()
@@ -318,9 +346,8 @@ fun LoginScreen(
                 }
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = colorScheme.onPrimary,
-                contentColor = colorScheme.onBackground,
-
+                containerColor = colorScheme.primary,
+                contentColor = colorScheme.onPrimary,
             ),
             modifier = Modifier
                 .padding(horizontal = 36.dp)
@@ -358,6 +385,9 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
+        var showForgotDialog by remember { mutableStateOf(false) }
+        var forgotEmail by remember { mutableStateOf("") }
+
         // ───────────── FORGOT PASSWORD ─────────────
         Text(
             text = stringResource(id = R.string.forgot_password),
@@ -366,9 +396,52 @@ fun LoginScreen(
             modifier = Modifier
                 .padding(horizontal = 26.dp)
                 .clickable {
-                    // navController.navigate("forgotPassword")- navegação futura
+                    showForgotDialog = true
                 }
         )
+
+        if (showForgotDialog) {
+            AlertDialog(
+                onDismissRequest = { showForgotDialog = false },
+                title = { Text(text = "Recuperar Password") },
+                text = {
+                    Column {
+                        Text("Insira o seu email. Se a conta existir, receberá uma password temporária.")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = forgotEmail,
+                            onValueChange = { forgotEmail = it },
+                            label = { Text("Email") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        val msg = uiState.forgotPasswordMessage
+                        if (msg != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = msg, color = colorScheme.primary)
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.forgotPassword(forgotEmail)
+                        },
+                        enabled = !uiState.loading
+                    ) {
+                        Text("Enviar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { 
+                        showForgotDialog = false
+                        viewModel.clearForgotMessage()
+                    }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
 
     }
 }

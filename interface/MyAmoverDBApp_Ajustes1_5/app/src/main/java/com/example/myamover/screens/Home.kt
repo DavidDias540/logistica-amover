@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,13 +28,21 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.TwoWheeler
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -84,13 +93,43 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Column(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.End
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            val uiState = loginViewModel.ui.collectAsState().value
 
+            // Left Side: Vehicle Info
+            if (uiState.assignedVehicle != null) {
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.assigned_motorcycle),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Default.TwoWheeler,
+                            contentDescription = stringResource(id = R.string.vehicle),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "${uiState.assignedVehicle.brand ?: ""} ${uiState.assignedVehicle.vid ?: ""}".trim(),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            } else {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            // Right Side: User Profile
             OutlinedButton(
-                onClick = {},
+                onClick = { navController.navigate(NavRoutes.Profile) },
                 shape = RoundedCornerShape(18.dp), // “pill”
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -99,75 +138,105 @@ fun HomeScreen(
                 ),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text(
-                    text = "Francisco Peixoto",
-                    //${user.name ?:
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorScheme.scrim,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val photoUrl = uiState.loggedInUser?.photoUrl
+                    if (!photoUrl.isNullOrEmpty()) {
+                        val cleanBase64 = photoUrl.substringAfter("base64,")
+                        val bitmap = androidx.compose.runtime.remember(cleanBase64) {
+                            try {
+                                val decodedBytes = android.util.Base64.decode(cleanBase64, android.util.Base64.DEFAULT)
+                                val bmp = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                                bmp?.asImageBitmap()
+                            } catch (e: Exception) { null }
+                        }
+                        if (bitmap != null) {
+                            androidx.compose.foundation.Image(
+                                bitmap = bitmap,
+                                contentDescription = stringResource(id = R.string.perfil),
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(androidx.compose.foundation.shape.CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            androidx.compose.foundation.layout.Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(androidx.compose.foundation.shape.CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                androidx.compose.material3.Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                                    contentDescription = stringResource(id = R.string.no_photo),
+                                    modifier = Modifier.size(20.dp),
+                                    tint = androidx.compose.ui.graphics.Color.White
+                                )
+                            }
+                        }
+                    } else {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            androidx.compose.material3.Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                                contentDescription = stringResource(id = R.string.no_photo),
+                                modifier = Modifier.size(20.dp),
+                                tint = androidx.compose.ui.graphics.Color.White
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = uiState.loggedInUser?.name ?: name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.scrim,
+                    )
+                }
             }
+        }
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp),
-//            shape = RoundedCornerShape(50.dp),
+                    .padding(top = 24.dp),
                 colors = CardDefaults.cardColors(containerColor = colorScheme.background),
-//            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // header "flat"
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     // LOGO
                     Card(
-                        modifier = Modifier.size(width = 200.dp, height = 80.dp),
+                        modifier = Modifier.size(width = 240.dp, height = 96.dp),
                         shape = RoundedCornerShape(30.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                         colors = CardDefaults.cardColors(containerColor = colorScheme.outlineVariant)
                     ) {
                         Image(
                             painter = painterResource(R.drawable.logo_verde),
-                            contentDescription = "Logo AmoVeR",
-                            modifier = Modifier.fillMaxSize(), // sem clip (já está cortado pela shape do Card)
+                            contentDescription = stringResource(id = R.string.app_name),
+                            modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit
                         )
-
                     }
 
-                    Spacer(Modifier.width(16.dp))
+                    Spacer(Modifier.height(12.dp))
 
-
-                    // TEXTO
-                    Column {
-
-                        Text(
-                            "",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colorScheme.onTertiaryContainer
-                        )
-                        Text(
-                            "",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colorScheme.onTertiaryContainer
-                        )
-
-                        Text(
-                            text = "Logistic",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colorScheme.surfaceVariant
-                        )
-
-
-                    }
-
+                    Text(
+                        text = stringResource(id = R.string.logistics),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                        color = colorScheme.primary,
+                        letterSpacing = 2.sp
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(120.dp))
-
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,50 +288,11 @@ fun HomeScreen(
                     Text(
                         text = stringResource(id = R.string.history),
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = modifier.padding(8.dp)
                     )
-
-                }
-                Spacer(modifier = Modifier.height(60.dp))
-
-
-                //Logouut
-                Button(
-                    onClick = {
-                        //1) termina sessão no ViewModel
-                        loginViewModel.logout()
-                        // 2) limpa navegação e volta ao Login
-                        navController.navigate(NavRoutes.Login) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    },
-
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(horizontal = 40.dp)
-                        .shadow(10.dp),   // mais alto que o normal
-                    shape = MaterialTheme.shapes.large, // usa o shape do seu Shape.kt
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.primaryContainer,
-                        contentColor = colorScheme.scrim
-                    )
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.logout),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = modifier.padding(8.dp)
-                    )
-
                 }
             }
         }
     }
-}
-
 
 
 

@@ -9,6 +9,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -95,6 +98,7 @@ fun AppNavGraph(
             NavRoutes.Tasks,
             NavRoutes.History,
             NavRoutes.Map,
+            NavRoutes.Assistance,
             NavRoutes.TaskDetailWithArgs,
             NavRoutes.HistoryTaskDetailWithArgs
 
@@ -115,6 +119,7 @@ fun AppNavGraph(
         NavRoutes.Tasks -> R.string.tasks
         NavRoutes.History -> R.string.history
         NavRoutes.Map -> R.string.map
+        NavRoutes.Assistance -> R.string.assistance
         "TaskDetail" -> R.string.task_detail
         "HistoryTaskDetail" -> R.string.task_detail
         else -> R.string.app_name
@@ -130,10 +135,29 @@ fun AppNavGraph(
     Scaffold(
         topBar = {
             // Mostra TopBar apenas nas rotas permitidas
-            if (showBars) TopBar(
-                navController = navController,
-                titleRes = titleRes,
-            )
+                if (showBars) TopBar(
+                    navController = navController,
+                    titleRes = titleRes,
+                    actions = {
+                        val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+                        val currentTag = currentLocales.get(0)?.language
+                            ?: java.util.Locale.getDefault().language
+
+                        if (currentRoute?.startsWith("home") == true) {
+                            IconButton(onClick = {
+                                val newLocale = if (currentTag.startsWith("pt")) "en" else "pt"
+                                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                                    androidx.core.os.LocaleListCompat.forLanguageTags(newLocale)
+                                )
+                            }) {
+                                Text(
+                                    text = if (currentTag.startsWith("pt")) "🇵🇹" else "🇬🇧",
+                                    fontSize = 24.sp
+                                )
+                            }
+                        }
+                    }
+                )
         },
         bottomBar = {
             // Mostra BottomNavigation apenas nas rotas permitidas
@@ -145,6 +169,7 @@ fun AppNavGraph(
                         NavigationItem.Tasks,
                         NavigationItem.History,
                         NavigationItem.Map,
+                        NavigationItem.Assistance,
                         // NavigationItem.Perfil
                     )
                 )
@@ -170,6 +195,17 @@ fun AppNavGraph(
             composable(NavRoutes.Login) {
                 LoginScreen(
                     windowSize = windowSize,
+                    navController = navController
+                )
+            }
+
+            composable(
+                route = NavRoutes.ChangePassword,
+                arguments = listOf(navArgument("email") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val email = backStackEntry.arguments?.getString("email") ?: ""
+                com.example.myamover.screens.ChangePasswordScreen(
+                    email = email,
                     navController = navController
                 )
             }
@@ -235,8 +271,7 @@ fun AppNavGraph(
                 MapScreen(
                     windowSize = windowSize,
                     modifier = modifier,
-                    mode = MapMode.FullRoute,
-                    todayRoute = tasksVm.ui.collectAsState().value.route
+                    mode = MapMode.FullRoute
                 )
             }
 
@@ -287,6 +322,21 @@ fun AppNavGraph(
                 HistoryTaskDetailRoute(
                     taskId = taskId,
                     onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(NavRoutes.Profile) {
+                com.example.myamover.screens.ProfileScreen(
+                    navController = navController,
+                    modifier = modifier
+                )
+            }
+
+            // ───────────────── ASSISTANCE / CHAT ─────────────────
+            composable(NavRoutes.Assistance) {
+                com.example.myamover.screens.AssistanceScreen(
+                    navController = navController,
+                    modifier = modifier
                 )
             }
         }

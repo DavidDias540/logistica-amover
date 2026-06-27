@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 namespace projeto.Data.Models
 {
     public class User
@@ -13,6 +13,14 @@ namespace projeto.Data.Models
         public string password { get; set; }
         [Required]
         public string role { get; set; }
+
+        public string? driverLicense { get; set; }
+        public string? citizenCard { get; set; }
+        public string? phone { get; set; }
+        public string? address { get; set; }
+        public string? photoUrl { get; set; }
+        public bool is_active { get; set; } = true;
+        public bool RequiresPasswordChange { get; set; } = false;
 
         //FK
 

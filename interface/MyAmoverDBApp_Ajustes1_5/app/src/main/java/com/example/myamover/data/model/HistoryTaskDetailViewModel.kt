@@ -56,7 +56,7 @@ fun HistoryTaskDetailRoute(
             val foundTask = tasks.firstOrNull { it.id == taskId }
                 ?: throw IllegalStateException("Task não encontrada (id=$taskId)")
 
-            val clientId = foundTask.client_id
+            val clientId = foundTask.clientID
                 ?: throw IllegalStateException("Task sem client_id (id=$taskId)")
 
             val clients: List<ClientRemote> = clientRepo.getAllClient()

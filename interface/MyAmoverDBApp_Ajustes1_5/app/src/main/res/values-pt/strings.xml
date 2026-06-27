@@ -71,6 +71,19 @@
     <string name="view_on_map">Mapa</string>
     <string name="window">Janela:</string>
     <string name="hello">Olá</string>
-
-
+    <string name="assigned_motorcycle">Mota atribuída:</string>
+    <string name="logistics">Logística</string>
+    <string name="user_profile">Perfil de Utilizador</string>
+    <string name="change_photo">Alterar Foto</string>
+    <string name="account_info">Informações da Conta</string>
+    <string name="name_label">Nome</string>
+    <string name="email_label">Email</string>
+    <string name="no_route_day">Nenhuma rota encontrada para este dia.</string>
+    <string name="route_completed">Rota Finalizada</string>
+    <string name="route_pending">Rota Pendente</string>
+    <string name="no_photo">Sem Foto</string>
+    <string name="vehicle">Veículo</string>
+    <string name="select_a_date">Selecione uma data</string>
+    <string name="stops">Paragens</string>
+    <string name="assistance">Assistência</string>
 </resources>

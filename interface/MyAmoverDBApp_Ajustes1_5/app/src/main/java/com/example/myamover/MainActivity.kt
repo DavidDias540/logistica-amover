@@ -64,12 +64,15 @@ import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 
 
-class MainActivity : ComponentActivity() {
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         ensureMessageChannel(this)
+        com.example.myamover.data.network.TokenManager.init(this)
         setContent {
             MyAmoverTheme {
                 AppNavGraph(windowSize = calculateWindowSizeClass(this).widthSizeClass)
@@ -123,7 +126,10 @@ fun TopBar(
         scrollBehavior = scrollBehavior,
         windowInsets = windowInsets,
         title = {
-            Row(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = title,
                     fontSize = 18.sp,
@@ -133,7 +139,7 @@ fun TopBar(
                 )
                 if (subtitle != null) {
                     Text(
-                        text = subtitle,
+                        text = " - $subtitle",
                         fontSize = 12.sp,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -145,20 +151,8 @@ fun TopBar(
         },
         navigationIcon = {
             when {
-                isHome -> { // botão de logout na Home
-                    IconButton(onClick = {
-                        navController.navigate(NavRoutes.HomeWithArgs) {
-//                            popUpTo(navController.graph.findStartDestination().id) {
-//                                inclusive = true
-//                            }
-//                            launchSingleTop = true
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Login"
-                        )
-                    }
+                isHome -> {
+                    // Sem botão de voltar na homepage
                 }
                 canPop -> { // seta de voltar nas outras telas
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -173,7 +167,9 @@ fun TopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -191,8 +187,8 @@ fun BottomNavigationBar(
     items: List<NavigationItem>
 ) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.onPrimary,
-        contentColor = Color.White
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route

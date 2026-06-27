@@ -52,13 +52,13 @@ fun HistoryDetailScreen(
 
     ) {
 
-    val startDate = formatIsoDateTime(task.timeWindowStart, "dd-MM-yyyy")
-    val startTime = formatIsoDateTime(task.timeWindowStart, "HH:mm")
-    val updated_at = formatIsoDateTime(task.updatedAt, "dd-MM-yyyy")
+    val startDate = formatIsoDateTime(task.creationDate, "dd-MM-yyyy")
+    val startTime = formatIsoDateTime(task.creationDate, "HH:mm")
+    val updated_at = formatIsoDateTime(task.creationDate, "dd-MM-yyyy")
 
 
-    val endDate = formatIsoDateTime(task.timeWindowEnd, "dd-MM-yyyy")
-    val endTime = formatIsoDateTime(task.timeWindowEnd, "HH:mm")
+    val endDate = formatIsoDateTime(task.creationDate, "dd-MM-yyyy")
+    val endTime = formatIsoDateTime(task.creationDate, "HH:mm")
 
     /**
      * Scaffold fornece a estrutura base do ecrã.
@@ -102,7 +102,7 @@ fun HistoryDetailScreen(
                 ElevatedCard {
                     Column(Modifier.padding(16.dp)) {
                         Text(stringResource(id = R.string.address), fontWeight = FontWeight.Bold)
-                        Text(task.address ?: "N/A")
+                        Text(task.nodes?.firstOrNull()?.address ?: "N/A")
 
                     }
                 }
@@ -113,7 +113,7 @@ fun HistoryDetailScreen(
                 ElevatedCard {
                     Column(Modifier.padding(16.dp)) {
                         Text(stringResource(id = R.string.info), fontWeight = FontWeight.Bold)
-                        Text(stringResource(id = R.string.annotation)+" ${task.anotation ?: "-"}")
+                        Text(stringResource(id = R.string.annotation)+" ${task.description ?: "-"}")
                         Text(stringResource(id = R.string.client_label)+"${client.name ?: "N/A"} ")
                         Text(client.address ?: "N/A")
                         Text(stringResource(id = R.string.window) +" $startDate $startTime - $endDate $endTime")

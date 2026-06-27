@@ -1,29 +1,18 @@
 package com.example.myamover.data.repository
 
-import com.example.myamover.data.network.SupabaseClientProvider
 import com.example.myamover.data.remote.CourierRemote
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class CourierRepository(
-    private val authRepository: AuthRepository,
-
+    private val authRepository: AuthRepository
 ) {
-    private val client = SupabaseClientProvider.client
 
     suspend fun getCourierByCurrentUser(): CourierRemote {
         return withContext(Dispatchers.IO) {
-            val userUuid = authRepository.requireCurrentUserUuid()
-            client
-                .from("couriers")
-                .select (Columns.list("id", "name", "UUID")){
-                    filter {
-                        eq("UUID", userUuid)
-                    }
-                }
-                .decodeSingle<CourierRemote>()
+            val userEmail = com.example.myamover.data.network.TokenManager.getUserEmail() ?: ""
+            val backendUser = com.example.myamover.data.network.RetrofitProvider.taskApi.getUserByEmail(userEmail)
+            CourierRemote(id = backendUser.id?.toInt(), name = backendUser.name, uuid = "")
         }
     }
 

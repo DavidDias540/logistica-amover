@@ -1,9 +1,9 @@
 package com.example.myamover.data.remote
 
-import com.example.myamover.data.model.RouteJson
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -37,74 +37,97 @@ interface TaskApiService {
         val status: String
     )
 
-    /**
-     * Response devolvida pelo PATCH /tasks/{id}.
-     *
-     * - status: indica sucesso da operação
-     * - route: nova rota diária (opcional)
-     *
-     * A rota só vem preenchida quando o status passa a "completed" ou "not-completed.
-     * Noutros casos, route = null.
-     */
     @Serializable
     data class UpdateTaskResponse(
-        val status: String,
-        val route: RouteJson? = null
+        val message: String
     )
 
+    @Serializable
+    data class ReoptimizeLiveRequest(
+        val vehicleId: Int,
+        val date: String,
+        val taskIds: List<Int>,
+        val currentLat: Float,
+        val currentLng: Float
+    )
 
-    /**
-     * Obtém todas as tarefas do backend.
-     *
-     * Endpoint:
-     * GET /tasks
-     *
-     * Usado no ecrã principal (TasksScreen)
-     * para mostrar a lista de tarefas do dia.
-     */
-    @GET("tasks")
-    suspend fun getAllTasks(courierId: Int): List<TaskRemote>
+    @Serializable
+    data class ReoptimizeResponse(
+        val message: String
+    )
 
-    @GET("tasks")
+    @GET("api/Task/driver/{userId}")
     suspend fun getTasksByCourier(
-        @Query("courier_id") courierId: Int
+        @Path("userId") courierId: Int
     ): List<TaskRemote>
 
-
-    /**
-     * Atualiza uma tarefa específica.
-     *
-     * Endpoint:
-     * PATCH /tasks/{id}
-     *
-     * Usado principalmente para:
-     * - marcar uma tarefa como "completed"
-     *
-     * Quando a tarefa é concluída, o backend:
-     * - recalcula a rota diária
-     * - devolve a nova rota no campo "route"
-     */
-    @PATCH("tasks/{id}")
-    suspend fun updateTask(
+    @PATCH("api/Task/{id}/node/{nodeID}/status")
+    suspend fun updateNodeStatus(
         @Path("id") taskId: Int,
+        @Path("nodeID") nodeID: Int,
         @Body body: TaskUpdateRequest
     ): UpdateTaskResponse
 
+    @POST("api/Route/group/{routeGroupId}/finish")
+    suspend fun finishRouteGroup(
+        @Path("routeGroupId") routeGroupId: String
+    ): retrofit2.Response<Unit>
 
-    /**
-     * Obtém a rota diária atual do estafeta.
-     *
-     * Endpoint:
-     * GET /routes/today?courier_id=...
-     *
-     * Usado:
-     * - no load inicial da app
-     * - como fallback caso o PATCH não devolva rota
-     */
-    @GET("routes/today")
-    suspend fun getTodayRoute(
-        @Query("courier_id") courierId: Int,
-    ): RouteJson
+    @POST("api/Route/reoptimize-live")
+    suspend fun reoptimizeLiveRoute(
+        @Body request: ReoptimizeLiveRequest
+    ): ReoptimizeResponse
+
+    @GET("api/Route")
+    suspend fun getDailyRoute(
+        @Query("vehicleId") vehicleId: Int,
+        @Query("date") date: String
+    ): List<RouteGroupRemote>
+
+    @GET("api/Route/driver/{userId}")
+    suspend fun getDailyRouteForDriver(
+        @Path("userId") userId: Int,
+        @Query("date") date: String
+    ): List<RouteGroupRemote>
+
+    @GET("api/User/byEmail/{email}")
+    suspend fun getUserByEmail(
+        @Path("email") email: String
+    ): UserRemote
+
+    @GET("api/Vehicle")
+    suspend fun getAllVehicles(): List<VehicleRemote>
+
+    @Serializable
+    data class ForgotPasswordRequest(val email: String)
+
+    @Serializable
+    data class ForgotPasswordResponse(val message: String)
+
+    @POST("api/User/forgot-password")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): ForgotPasswordResponse
+
+    @retrofit2.http.PUT("api/User/change-password")
+    suspend fun changePassword(
+        @Body request: Map<String, String>
+    ): retrofit2.Response<Unit>
+
+    // ───────────────────── ASSISTÊNCIA / CHAT ─────────────────────
+    @GET("api/Assistance")
+    suspend fun getAssistanceRequests(): List<AssistanceRequestRemote>
+
+    @POST("api/Assistance")
+    suspend fun createAssistanceRequest(
+        @Body request: AssistanceRequestRemote
+    ): AssistanceRequestRemote
+
+    @POST("api/Assistance/{id}/messages")
+    suspend fun sendAssistanceMessage(
+        @Path("id") id: Int,
+        @Body message: AssistanceMessageCreateDto
+    ): AssistanceMessageRemote
 }
 
 

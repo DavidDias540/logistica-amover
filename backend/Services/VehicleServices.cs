@@ -1,4 +1,5 @@
-﻿using projeto.Data;
+using Microsoft.EntityFrameworkCore;
+using projeto.Data;
 using projeto.Data.Models;
 
 namespace projeto.Services
@@ -32,7 +33,11 @@ namespace projeto.Services
         {
             try
             {
-                return _context.vehicles.ToList();
+                return _context.vehicles
+                    .Include(v => v.owner)
+                        .ThenInclude(u => u.company)
+                            .ThenInclude(c => c.services)
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -68,8 +73,14 @@ namespace projeto.Services
                     return false;
                 }
                 target.VID = v.VID;
+                target.name = v.name;
+                target.brand = v.brand;
+                target.model = v.model;
+                target.status = v.status;
                 target.batteryCapacity = v.batteryCapacity;
                 target.cargoCapacity = v.cargoCapacity;
+                target.ownerID = v.ownerID;
+                target.companyID = v.companyID;
                 _context.SaveChanges();
                 return true;
             }

@@ -39,22 +39,11 @@ android {
         applicationId = "com.example.myamover"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // ...
-        buildConfigField(
-            "String",
-            "SUPABASE_URL",
-            "\"${secretsProperties.getProperty("SUPABASE_URL")}\""
-        )
-        buildConfigField(
-            "String",
-            "SUPABASE_ANON_KEY",
-            "\"${secretsProperties.getProperty("SUPABASE_ANON_KEY")}\""
-        )
         // googlemaps
         manifestPlaceholders["MAPS_API_KEY"] = project.properties["MAPS_API_KEY"] ?: ""
 
@@ -68,6 +57,20 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    flavorDimensions += "env"
+    productFlavors {
+        create("emulator") {
+            dimension = "env"
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:5029/\"")
+            buildConfigField("String", "KEYCLOAK_URL", "\"http://10.0.2.2:8080/\"")
+        }
+        create("device") {
+            dimension = "env"
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.90:5029/\"")
+            buildConfigField("String", "KEYCLOAK_URL", "\"http://192.168.1.90:8080/\"")
         }
     }
     compileOptions {
@@ -91,6 +94,7 @@ dependencies {
 
     // --- AndroidX Core ---
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // --- Lifecycle & ViewModel ---
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -107,6 +111,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.runtime)
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
     // Material 3
     implementation(libs.androidx.material3)
@@ -173,16 +178,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-
-    // Cliente Supabase
-    implementation(libs.supabase.kt)
-
-    // (opcionais mas normalmente úteis)
-    implementation("io.github.jan-tennert.supabase:postgrest-kt:3.2.5")  // CRUD nas tabelas
-    implementation("io.github.jan-tennert.supabase:auth-kt:3.2.5") // Autenticação de utilizadores
-    implementation(libs.realtime.kt)    // Subscrições em tempo real
-
-    implementation("io.ktor:ktor-client-android:3.3.1")
 
     //Retrofit
     implementation(libs.retrofit)

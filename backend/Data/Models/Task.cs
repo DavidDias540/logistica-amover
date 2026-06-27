@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema; // Adicionado para [ForeignKey]
 
 namespace projeto.Data.Models
@@ -36,6 +36,7 @@ namespace projeto.Data.Models
         // FKs
         public int? userID { get; set; }
         public int? planID { get; set; }
+        public int? vehicleID { get; set; }
 
         [Required]
         public int serviceID { get; set; }
@@ -43,13 +44,23 @@ namespace projeto.Data.Models
         [Required]
         public int clientID { get; set; }
 
-    
+        public string? street { get; set; }
+        public string? door_number { get; set; }
+        public string? floor { get; set; }
+        public string? postal_code { get; set; }
+        public string? city { get; set; }
+        public string? instructions { get; set; }
+        public string? notes { get; set; }
+        public string? priority { get; set; }
 
         [ForeignKey("userID")]
         public virtual User? user { get; set; }
 
         [ForeignKey("planID")]
         public virtual Plan? plan { get; set; }
+        
+        [ForeignKey("vehicleID")]
+        public virtual Vehicle? vehicle { get; set; }
 
         [ForeignKey("serviceID")]
         public virtual Service? service { get; set; }
@@ -58,5 +69,6 @@ namespace projeto.Data.Models
         public virtual Client? client { get; set; }
 
         public virtual List<LocationNode>? Nodes { get; set; }
+        public virtual List<LocationNodeTask>? LocationNodeTasks { get; set; }
     }
 }

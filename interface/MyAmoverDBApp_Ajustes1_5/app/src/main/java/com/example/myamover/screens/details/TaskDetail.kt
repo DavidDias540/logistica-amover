@@ -47,7 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.myamover.R
-import com.example.myamover.data.model.RouteNode
+import com.example.myamover.data.remote.LocationNodeRemote
 import com.example.myamover.data.network.confirmations.SignaturePad
 import com.example.myamover.data.remote.ClientRemote
 import com.example.myamover.data.remote.TaskRemote
@@ -61,7 +61,7 @@ import java.io.File
 fun TaskDetailScreen(
     task: TaskRemote,
     client: ClientRemote,
-    node: RouteNode,
+    node: LocationNodeRemote?,
     onComplete: (status: String, photos: List<Uri>, signatureUri: Uri?, dispatcherNotes: String) -> Unit
 
 ) {
@@ -130,11 +130,11 @@ fun TaskDetailScreen(
                     stringResource(id = R.string.time_delivery) + ": ",
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
-                Text("${node.timeWindowStart} - ${node.timeWindowStart}")
+                Text("${node?.status ?: "N/A"}")
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                "Status: ${node.status}",
+                "Status: ${node?.status ?: "N/A"}",
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium
             )
@@ -145,7 +145,7 @@ fun TaskDetailScreen(
         item(key = "stop") {
             ElevatedCard {
                 Column(Modifier.padding(16.dp)) {
-                    Text(node.addressTask ?: "N/A")
+                    Text(node?.address ?: "N/A")
 
 
                 }
@@ -191,8 +191,8 @@ fun TaskDetailScreen(
             ElevatedCard {
                 Column(Modifier.padding(16.dp)) {
                     Text(stringResource(id = R.string.task_info), fontWeight = FontWeight.Bold)
-                    Text(stringResource(id = R.string.note) + "${task.anotation ?: "-"}")
-                    Text(stringResource(id = R.string.instruction) + " ${task.instructions ?: "-"}")
+                    Text(stringResource(id = R.string.note) + "${task.description ?: "-"}")
+                    Text(stringResource(id = R.string.instruction) + " ${task.description ?: "-"}")
 
                 }
             }

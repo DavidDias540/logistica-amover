@@ -1,112 +1,90 @@
 package com.example.myamover.data.repository
 
-import com.example.myamover.data.network.SupabaseClientProvider
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.user.UserInfo
+import com.example.myamover.data.network.RetrofitProvider
+import com.example.myamover.data.network.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-/*
-**
- * AuthRepository
- *
- * Repositório responsável por TODA a lógica de autenticação.
- *
- * Este repositório:
- * - comunica diretamente com o Supabase Auth
- * - encapsula a lógica de login/logout
- * - devolve resultados normalizados à app (DTO próprio)
- *
- * O ViewModel NUNCA deve falar diretamente com o Supabase,
- * apenas através deste repositório.
- */
+import android.util.Base64
+import org.json.JSONObject
 
 class AuthRepository {
 
-    //Cliente Supabase partilhado em toda app
-    private val client = SupabaseClientProvider.client
+    private val keycloakApi = RetrofitProvider.keycloakApi
 
-    // Login com email/password usando Supabase Auth (v3.2.5)
-    /**
-     * Login com email e palavra-passe usando Supabase Auth.
-     *
-     * Usa Result<T> para:
-     * - representar sucesso (Result.success)
-     * - representar falha (Result.failure)
-     *
-     * Isto permite ao ViewModel tratar o resultado
-     * sem usar try/catch diretamente.
-     */
     suspend fun login(
         email: String,
         password: String
-    ): Result<SupabaseUserData> {
-
-        // Garante que a chamada é feita numa thread separada
+    ): Result<AuthUserData> {
         return withContext(Dispatchers.IO) {
             try {
                 // 1. tenta autenticar
-                /* Se as credenciais estiverem erradas,esta chamada lança uma exceção.
-                 */
-                client.auth.signInWith(Email) {
-                    this.email = email
-                    this.password = password
-                }
+                val response = keycloakApi.login(username = email, password = password)
 
-                // 2. depois do signInWith, o utilizador autenticado
-                // fica disponível em currentUserOrNull()
-                val currentUser: UserInfo? = client.auth.currentUserOrNull()
+                // 2. decode JWT to get User ID, Email and Name
+                val parts = response.accessToken.split(".")
+                if (parts.size < 2) throw Exception("Invalid token")
+                val decodedPayload = String(Base64.decode(parts[1], Base64.URL_SAFE))
+                val json = JSONObject(decodedPayload)
+                val userId = json.optString("sub", "")
+                val userEmail = json.optString("email", email)
+                val userName = json.optString("name", json.optString("preferred_username", "Motorista"))
 
-                // Situação anómala: login feito mas sessão não criada
-                if (currentUser == null) {
-                    return@withContext Result.failure(
-                        IllegalStateException("Sessão não criada (currentUserOrNull == null)")
-                    )
-                }
-
-                // 3. map para o nosso DTO externo
-                //Converte o UserInfo do Supabase para o DTO simples usado pela app
-                Result.success(
-                    currentUser.toSupabaseUserData()
+                // 3. Save tokens immediately so backend calls are authenticated
+                TokenManager.saveTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    userId = userId,
+                    email = userEmail,
+                    name = userName,
+                    photoUrl = null
                 )
 
-            } catch (e: Exception) {
-                // Normalizar a mensagem de erro - Evita mostrar mensagens técnicas ao utilizador
-                val friendlyException = if (
-                    e.message?.contains("invalid_credentials", ignoreCase = true) == true
-                ) {
-                    // credenciais erradas
-                    Exception("Email ou palavra-passe incorretos.")
-                } else {
-                    // qualquer outro erro (rede, servidor, etc.)
-                    Exception("Não foi possível iniciar sessão. Tente novamente.")
+                // 4. Obter info completa do utilizador (incluindo photoUrl e requiresPasswordChange) da API
+                val backendUser = try {
+                    RetrofitProvider.taskApi.getUserByEmail(userEmail)
+                } catch (e: Exception) {
+                    null
                 }
 
-                Result.failure(friendlyException)
+                val finalName = backendUser?.name ?: userName
+                val photoUrl = backendUser?.photoUrl
+                val requiresPassChange = backendUser?.requiresPasswordChange ?: false
+
+                // 5. Update stored name/photo if backend provided them
+                TokenManager.saveTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    userId = userId,
+                    email = userEmail,
+                    name = finalName,
+                    photoUrl = photoUrl
+                )
+
+                Result.success(AuthUserData(id = userId, email = userEmail, name = finalName, photoUrl = photoUrl, requiresPasswordChange = requiresPassChange))
+
+            } catch (e: Exception) {
+                Result.failure(Exception("Email ou palavra-passe incorretos."))
             }
         }
     }
 
-    // obter user atual (por ex. auto-login no arranque da app)
-    /**
-     * Obtém o utilizador atualmente autenticado.
-     *
-     * Usado para:
-     * - auto-login ao abrir a app
-     * - restaurar sessão existente
-     *
-     * Retorna null se não existir sessão válida.
-     */
-    suspend fun getCurrentUser(): SupabaseUserData? {
+    suspend fun getCurrentUser(): AuthUserData? {
         return withContext(Dispatchers.IO) {
-            client.auth.currentUserOrNull()?.toSupabaseUserData()
+            val userId = TokenManager.getUserId()
+            val email = TokenManager.getUserEmail()
+            val name = TokenManager.getUserName() ?: "Motorista"
+            val photoUrl = TokenManager.getUserPhoto()
+            if (userId != null && email != null) {
+                AuthUserData(id = userId, email = email, name = name, photoUrl = photoUrl)
+            } else {
+                null
+            }
         }
     }
 
     suspend fun getCurrentUserUuid(): String? {
         return withContext(Dispatchers.IO) {
-            client.auth.currentUserOrNull()?.id
+            TokenManager.getUserId()
         }
     }
 
@@ -115,46 +93,39 @@ class AuthRepository {
             ?: throw IllegalStateException("Utilizador não autenticado")
     }
 
-    // logout
-    /**
-     * Termina a sessão do utilizador (logout).
-     *
-     * Remove:
-     * - sessão local
-     * - token de autenticação
-     */
     suspend fun logout() {
-            client.auth.signOut()
+        TokenManager.clear()
     }
 
-    // conversor interno -> externo
-    /**
-     * Função de extensão privada.
-     *
-     * Converte o UserInfo interno do Supabase
-     * para o DTO simples usado pela aplicação.
-     */
-    private fun UserInfo.toSupabaseUserData(): SupabaseUserData {
-        return SupabaseUserData(
-            id = this.id,
-            email = this.email ?: ""
-        )
+    suspend fun forgotPassword(email: String): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = RetrofitProvider.taskApi.forgotPassword(
+                    com.example.myamover.data.remote.TaskApiService.ForgotPasswordRequest(email)
+                )
+                Result.success(response.message)
+            } catch (e: Exception) {
+                Result.failure(Exception("Ocorreu um erro ao pedir a recuperação de password."))
+            }
+        }
     }
-
 }
 
 // o DTO simples que a app realmente usa
 /**
- * SupabaseUserData
+ * AuthUserData
  *
  * DTO simples que a app realmente usa.
  *
- * Evita expor diretamente o UserInfo do Supabase
+ * Evita expor diretamente o token/utilizador remoto
  * ao resto da aplicação.
  */
-data class SupabaseUserData(
+data class AuthUserData(
     val id: String,
-    val email: String
+    val email: String,
+    val name: String = "",
+    val photoUrl: String? = null,
+    val requiresPasswordChange: Boolean = false
 )
 
 /*
@@ -162,18 +133,17 @@ Separação correta Repository ↔ ViewModel
 ✔ Uso adequado de Result<T> para sucesso/erro
 ✔ Normalização de mensagens para o utilizador
 ✔ Proteção contra erros de thread (Dispatchers.IO)
-✔ Conversão limpa entre modelo Supabase e modelo da app
+✔ Conversão limpa entre modelo remoto e modelo da app
 Sugestões futuras (opcionais)
 
-1.Adicionar refresh de sessão
-client.auth.refreshCurrentSession()
+1. Adicionar refresh de sessão com refresh_token do Keycloak
 
-2.Suporte a outros providers
+2. Suporte a outros providers
 Google
 GitHub
 OTP
 
-3️.Mapear tipos de erro mais específicos
+3. Mapear tipos de erro mais específicos
 utilizador bloqueado
 email não confirmado
  */

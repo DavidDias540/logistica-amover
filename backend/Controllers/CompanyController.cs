@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using projeto.Data.Models;
 using projeto.Services;
 
 namespace projeto.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CompanyController : ControllerBase
     {
@@ -17,10 +18,11 @@ namespace projeto.Controllers
             _logger = logger;
             _db = db;
         }
+
         [HttpPost]
         public IActionResult Post([FromBody] CompanyDTO _c)
         {
-            if (_c.Name == "" || _c.Description == "")
+            if (string.IsNullOrWhiteSpace(_c.Name) || string.IsNullOrWhiteSpace(_c.Description))
             {
                 _logger.LogError("Company data is null.");
                 return BadRequest("Dados da companhia não podem ser nulos.");
@@ -33,13 +35,13 @@ namespace projeto.Controllers
                     description = _c.Description
                 };
                 _db.CreateCompany(c);
+                return Ok(c);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar companhia.");
                 return StatusCode(500, "Erro interno do servidor.");
             }
-            return Ok(new { message = "Companhia registada com sucesso" });
         }
 
         [HttpGet]

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using projeto.Data;
 using projeto.Data.Models;
 using projeto.Services;
 using Task = projeto.Data.Models.Task;
@@ -12,19 +14,49 @@ namespace projeto.Controllers
     public class TaskController : ControllerBase
     {
         private readonly TaskServices _db;
+        private readonly UserServices _userDb;
+        private readonly AMoverContext _context;
         private readonly ILogger<TaskController> _logger;
 
-        public TaskController(ILogger<TaskController> logger, TaskServices db)
+        public TaskController(ILogger<TaskController> logger, TaskServices db, UserServices userDb, AMoverContext context)
         {
             _logger = logger;
             _db = db;
+            _userDb = userDb;
+            _context = context;
         }
+
+        private User? GetCurrentUser()
+        {
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                ?? User.FindFirst("email")?.Value
+                ?? User.FindFirst("preferred_username")?.Value
+                ?? User?.Identity?.Name;
+            if (string.IsNullOrEmpty(email)) return null;
+            return _userDb.GetUserByEmail(email);
+        }
+
+        private bool IsAdmin(User u) => u.role?.ToLower() == "admin";
+        private bool IsManager(User u) => u.role?.ToLower() == "manager";
+        private bool BelongsToManagerCompany(User u, Task t) => t.service?.companyID == u.companyID;
 
         [HttpPost]
         public IActionResult Post([FromBody] TaskDTO _t)
         {
             try
             {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
+
+                if (IsManager(currentUser))
+                {
+                    var service = _context.services.Find(_t.ServiceID);
+                    if (service == null || service.companyID != currentUser.companyID)
+                    {
+                        return Forbid("Não pode criar tarefas para serviços de outra empresa.");
+                    }
+                }
+
                 Task t = new Task
                 {
                     type = _t.Type,
@@ -35,7 +67,7 @@ namespace projeto.Controllers
                     creationDate = DateTime.UtcNow
                 };
                 _db.CreateTask(t, _t.ServiceID, _t.ClientID);
-                return Ok(new { message = "Tarefa criada com sucesso." });
+                return Ok(t);
             }
             catch (Exception ex)
             {
@@ -49,7 +81,17 @@ namespace projeto.Controllers
         {
             try
             {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
+
                 List<Task> targets = _db.GetTasks();
+                if (IsManager(currentUser))
+                {
+                    targets = targets
+                        .Where(t => t.service != null && t.service.companyID == currentUser.companyID)
+                        .ToList();
+                }
+
                 if (targets == null || targets.Count == 0)
                 {
                     return NotFound("Nenhuma tarefa encontrada.");
@@ -63,13 +105,42 @@ namespace projeto.Controllers
             }
         }
 
+        [HttpGet("driver/{userId}")]
+        public ActionResult<IEnumerable<Task>> GetByDriver(int userId)
+        {
+            try
+            {
+                List<Task> targets = _db.GetTasksByDriver(userId);
+                if (targets == null || targets.Count == 0)
+                {
+                    return NotFound("Nenhuma tarefa encontrada para este motorista.");
+                }
+                return Ok(targets);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter tarefas do motorista {UserId}.", userId);
+                return StatusCode(500, "Erro interno do servidor.");
+            }
+        }
+
         [HttpGet("{id}")]
         public ActionResult<Task> Get(int id)
         {
             try
             {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
+
                 var target = _db.GetTaskByID(id);
-                return target == null ? NotFound("Nenhuma tarefa encontrada com o ID especificado") : Ok(target);
+                if (target == null) return NotFound("Nenhuma tarefa encontrada com o ID especificado");
+
+                if (IsManager(currentUser) && !BelongsToManagerCompany(currentUser, target))
+                {
+                    return Forbid("Não pode aceder a tarefas de outra empresa.");
+                }
+
+                return Ok(target);
             }
             catch (Exception ex)
             {
@@ -78,11 +149,48 @@ namespace projeto.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] Task task)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
+
+                var existing = _db.GetTaskByID(id);
+                if (existing == null) return NotFound("Tarefa não encontrada.");
+
+                if (IsManager(currentUser) && !BelongsToManagerCompany(currentUser, existing))
+                {
+                    return Forbid("Não pode editar tarefas de outra empresa.");
+                }
+
+                task.ID = id;
+                return _db.EditTask(task) ? Ok(new { message = "Tarefa atualizada com sucesso." }) : NotFound("Tarefa não encontrada.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar tarefa.");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             try
             {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
+
+                var existing = _db.GetTaskByID(id);
+                if (existing == null) return NotFound("Tarefa não encontrada.");
+
+                if (IsManager(currentUser) && !BelongsToManagerCompany(currentUser, existing))
+                {
+                    return Forbid("Não pode eliminar tarefas de outra empresa.");
+                }
+
                 return _db.DeleteTask(id) ? Ok(new { message = "Tarefa eliminada com sucesso." }) : NotFound("Tarefa não encontrada.");
             }
             catch (Exception ex)
@@ -118,6 +226,25 @@ namespace projeto.Controllers
                 _logger.LogError(ex, "Erro ao remover nó.");
                 return StatusCode(500, "Erro interno.");
             }
+        }
+
+        [HttpPatch("{id}/node/{nodeID}/status")]
+        public IActionResult UpdateNodeStatus(int id, int nodeID, [FromBody] UpdateStatusRequest req)
+        {
+            try
+            {
+                return _db.UpdateNodeStatus(id, nodeID, req.Status) ? Ok(new { message = "Estado do nó atualizado com sucesso." }) : NotFound("Tarefa ou nó não encontrado.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar estado do nó.");
+                return StatusCode(500, "Erro interno.");
+            }
+        }
+
+        public class UpdateStatusRequest
+        {
+            public string Status { get; set; } = "Completed";
         }
 
         public class TaskDTO

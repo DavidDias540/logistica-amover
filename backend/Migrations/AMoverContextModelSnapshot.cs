@@ -37,21 +37,6 @@ namespace AMoVeRLogistica.Migrations
                     b.ToTable("AlertUser");
                 });
 
-            modelBuilder.Entity("LocationNodeTask", b =>
-                {
-                    b.Property<int>("NodesID")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("tasksID")
-                        .HasColumnType("integer");
-
-                    b.HasKey("NodesID", "tasksID");
-
-                    b.HasIndex("tasksID");
-
-                    b.ToTable("LocationNodeTask");
-                });
-
             modelBuilder.Entity("projeto.Data.Models.Alert", b =>
                 {
                     b.Property<int>("ID")
@@ -101,6 +86,106 @@ namespace AMoVeRLogistica.Migrations
                     b.ToTable("apiKeys");
                 });
 
+            modelBuilder.Entity("projeto.Data.Models.AssistanceMessage", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<int>("AssistanceRequestID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("sender")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssistanceRequestID");
+
+                    b.ToTable("assistanceMessages");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.AssistanceRequest", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<int?>("TargetUserID")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("subject")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("TargetUserID");
+
+                    b.ToTable("assistanceRequests");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.CanceledRouteLog", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("CancelationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ReturnedToUnassigned")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RouteGroupId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaskIds")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("VehicleID")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("canceledRouteLogs");
+                });
+
             modelBuilder.Entity("projeto.Data.Models.Client", b =>
                 {
                     b.Property<int>("ID")
@@ -113,8 +198,20 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("city")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("companyID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("door_number")
+                        .HasColumnType("text");
+
                     b.Property<string>("email")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("floor")
                         .HasColumnType("text");
 
                     b.Property<string>("name")
@@ -129,7 +226,15 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("postal_code")
+                        .HasColumnType("text");
+
+                    b.Property<string>("street")
+                        .HasColumnType("text");
+
                     b.HasKey("ID");
+
+                    b.HasIndex("companyID");
 
                     b.ToTable("clients");
                 });
@@ -179,9 +284,62 @@ namespace AMoVeRLogistica.Migrations
                     b.Property<float>("longintude")
                         .HasColumnType("real");
 
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("ID");
 
                     b.ToTable("LocationNode");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.LocationNodeTask", b =>
+                {
+                    b.Property<int>("NodeID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TaskID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RouteGroupId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("stopOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("NodeID", "TaskID");
+
+                    b.HasIndex("TaskID");
+
+                    b.ToTable("LocationNodeTask");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.Maintenance", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("motorcycleid")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("resolved")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("motorcycleid");
+
+                    b.ToTable("maintenances");
                 });
 
             modelBuilder.Entity("projeto.Data.Models.MessageLog", b =>
@@ -277,6 +435,9 @@ namespace AMoVeRLogistica.Migrations
                     b.Property<TimeSpan?>("availableTimeStart")
                         .HasColumnType("interval");
 
+                    b.Property<string>("city")
+                        .HasColumnType("text");
+
                     b.Property<int>("clientID")
                         .HasColumnType("integer");
 
@@ -290,8 +451,26 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("door_number")
+                        .HasColumnType("text");
+
+                    b.Property<string>("floor")
+                        .HasColumnType("text");
+
+                    b.Property<string>("instructions")
+                        .HasColumnType("text");
+
+                    b.Property<string>("notes")
+                        .HasColumnType("text");
+
                     b.Property<int?>("planID")
                         .HasColumnType("integer");
+
+                    b.Property<string>("postal_code")
+                        .HasColumnType("text");
+
+                    b.Property<string>("priority")
+                        .HasColumnType("text");
 
                     b.Property<string>("recurrence")
                         .IsRequired()
@@ -304,11 +483,17 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("street")
+                        .HasColumnType("text");
+
                     b.Property<string>("type")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("userID")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("vehicleID")
                         .HasColumnType("integer");
 
                     b.HasKey("ID");
@@ -321,6 +506,8 @@ namespace AMoVeRLogistica.Migrations
 
                     b.HasIndex("userID");
 
+                    b.HasIndex("vehicleID");
+
                     b.ToTable("tasks");
                 });
 
@@ -332,12 +519,27 @@ namespace AMoVeRLogistica.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
+                    b.Property<bool>("RequiresPasswordChange")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("citizenCard")
+                        .HasColumnType("text");
+
                     b.Property<int?>("companyID")
                         .HasColumnType("integer");
+
+                    b.Property<string>("driverLicense")
+                        .HasColumnType("text");
 
                     b.Property<string>("email")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("name")
                         .IsRequired()
@@ -345,6 +547,12 @@ namespace AMoVeRLogistica.Migrations
 
                     b.Property<string>("password")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("photoUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("role")
@@ -373,13 +581,34 @@ namespace AMoVeRLogistica.Migrations
                     b.Property<float>("batteryCapacity")
                         .HasColumnType("real");
 
+                    b.Property<string>("brand")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<float>("cargoCapacity")
                         .HasColumnType("real");
+
+                    b.Property<int?>("companyID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("model")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int?>("ownerID")
                         .HasColumnType("integer");
 
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("ID");
+
+                    b.HasIndex("companyID");
 
                     b.HasIndex("ownerID");
 
@@ -401,21 +630,6 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LocationNodeTask", b =>
-                {
-                    b.HasOne("projeto.Data.Models.LocationNode", null)
-                        .WithMany()
-                        .HasForeignKey("NodesID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("projeto.Data.Models.Task", null)
-                        .WithMany()
-                        .HasForeignKey("tasksID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("projeto.Data.Models.Alert", b =>
                 {
                     b.HasOne("projeto.Data.Models.User", "admin")
@@ -425,6 +639,65 @@ namespace AMoVeRLogistica.Migrations
                         .IsRequired();
 
                     b.Navigation("admin");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.AssistanceMessage", b =>
+                {
+                    b.HasOne("projeto.Data.Models.AssistanceRequest", "AssistanceRequest")
+                        .WithMany("Messages")
+                        .HasForeignKey("AssistanceRequestID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssistanceRequest");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.AssistanceRequest", b =>
+                {
+                    b.HasOne("projeto.Data.Models.User", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserID");
+
+                    b.Navigation("TargetUser");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.Client", b =>
+                {
+                    b.HasOne("projeto.Data.Models.Company", "company")
+                        .WithMany()
+                        .HasForeignKey("companyID");
+
+                    b.Navigation("company");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.LocationNodeTask", b =>
+                {
+                    b.HasOne("projeto.Data.Models.LocationNode", "LocationNode")
+                        .WithMany("LocationNodeTasks")
+                        .HasForeignKey("NodeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("projeto.Data.Models.Task", "Task")
+                        .WithMany("LocationNodeTasks")
+                        .HasForeignKey("TaskID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LocationNode");
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.Maintenance", b =>
+                {
+                    b.HasOne("projeto.Data.Models.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("motorcycleid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("projeto.Data.Models.Plan", b =>
@@ -473,6 +746,10 @@ namespace AMoVeRLogistica.Migrations
                         .HasForeignKey("userID")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("projeto.Data.Models.Vehicle", "vehicle")
+                        .WithMany()
+                        .HasForeignKey("vehicleID");
+
                     b.Navigation("client");
 
                     b.Navigation("plan");
@@ -480,6 +757,8 @@ namespace AMoVeRLogistica.Migrations
                     b.Navigation("service");
 
                     b.Navigation("user");
+
+                    b.Navigation("vehicle");
                 });
 
             modelBuilder.Entity("projeto.Data.Models.User", b =>
@@ -494,12 +773,23 @@ namespace AMoVeRLogistica.Migrations
 
             modelBuilder.Entity("projeto.Data.Models.Vehicle", b =>
                 {
+                    b.HasOne("projeto.Data.Models.Company", "company")
+                        .WithMany()
+                        .HasForeignKey("companyID");
+
                     b.HasOne("projeto.Data.Models.User", "owner")
                         .WithMany("vehicles")
                         .HasForeignKey("ownerID")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("company");
+
                     b.Navigation("owner");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.AssistanceRequest", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("projeto.Data.Models.Client", b =>
@@ -514,6 +804,11 @@ namespace AMoVeRLogistica.Migrations
                     b.Navigation("users");
                 });
 
+            modelBuilder.Entity("projeto.Data.Models.LocationNode", b =>
+                {
+                    b.Navigation("LocationNodeTasks");
+                });
+
             modelBuilder.Entity("projeto.Data.Models.Plan", b =>
                 {
                     b.Navigation("tasks");
@@ -522,6 +817,11 @@ namespace AMoVeRLogistica.Migrations
             modelBuilder.Entity("projeto.Data.Models.Service", b =>
                 {
                     b.Navigation("tasks");
+                });
+
+            modelBuilder.Entity("projeto.Data.Models.Task", b =>
+                {
+                    b.Navigation("LocationNodeTasks");
                 });
 
             modelBuilder.Entity("projeto.Data.Models.User", b =>

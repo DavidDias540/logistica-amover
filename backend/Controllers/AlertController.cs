@@ -1,9 +1,11 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using projeto.Data.Models;
 using projeto.Services;
 
 namespace projeto.Controllers
 {
+    [Authorize(Roles = "admin,motorista")]
     [ApiController]
     [Route("[controller]")]
     public class AlertController : ControllerBase
@@ -32,7 +34,7 @@ namespace projeto.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar alerta.");
-                throw new Exception("Erro ao criar alerta.");
+                throw new Exception(ex.Message);
             }
             return;
         }
