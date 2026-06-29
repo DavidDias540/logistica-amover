@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 namespace projeto.Data.Models
 {
 
@@ -19,7 +19,8 @@ namespace projeto.Data.Models
         public int companyID { get; set; }
 
         //NAV
-        public virtual Company company { get; set; }
+        [JsonIgnore]
+        public virtual Company? company { get; set; }
         [JsonIgnore]
         public virtual List<Task>? tasks { get; set; }
     }

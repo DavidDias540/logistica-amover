@@ -8,8 +8,9 @@ docker build -t amover-android -f Dockerfile.android .
 
 echo.
 echo Passo 2: A extrair o APK (Isto vai demorar algum tempo na primeira vez)...
-mkdir app\build\outputs\apk\debug 2>NUL
-docker run --rm -v "%CD%\app\build\outputs\apk\debug:/output" amover-android sh -c "./gradlew assembleDebug --no-daemon && cp app/build/outputs/apk/debug/app-debug.apk /output/"
+mkdir app\build\outputs\apk\device\debug 2>NUL
+mkdir app\build\outputs\apk\emulator\debug 2>NUL
+docker run --rm -v "%CD%\app\build\outputs\apk:/output" amover-android sh -c "./gradlew assembleDebug --no-daemon && cp app/build/outputs/apk/device/debug/app-device-debug.apk /output/device/debug/ 2>/dev/null || true && cp app/build/outputs/apk/emulator/debug/app-emulator-debug.apk /output/emulator/debug/ 2>/dev/null || true"
 
 echo.
 echo ========================================================

@@ -164,7 +164,7 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
         ownerID: null,
         batteryCapacity: newVehicle.battery_capacity,
         cargoCapacity: newVehicle.cargo_capacity,
-        companyID: newVehicle.company_id,
+        companyID: isManager ? companyId : newVehicle.company_id,
       });
 
       setDbMotorcycles((prev) => [...prev, data]);
@@ -216,7 +216,7 @@ const updateMotorcycle = async () => {
       cargoCapacity: selectedMotoForEdit.cargo_capacity,
       status: selectedMotoForEdit.status,
       ownerID: selectedMotoForEdit.ownerID,
-      companyID: selectedMotoForEdit.company_id || selectedMotoForEdit.companyID,
+      companyID: isManager ? companyId : (selectedMotoForEdit.company_id || selectedMotoForEdit.companyID),
     });
 
     setDbMotorcycles(prev =>
@@ -256,6 +256,13 @@ async function confirmSendToMaintenance() {
       ...selectedMotoForMaintenance,
       status: "Manutenção", 
       ownerID: null
+    });
+
+    await apiClient.post(`/api/Vehicle/maintenance`, {
+      motorcycleid: selectedMotoForMaintenance.id,
+      description: maintenanceReason,
+      date: new Date().toISOString(),
+      resolved: false
     });
 
     setDbMotorcycles((prev) =>
@@ -478,12 +485,6 @@ return (
           ))}
         </select>
       )}
-      {isManager && (
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Empresa: {companies.find((c) => c.id === (selectedMotoForEdit.company_id || selectedMotoForEdit.companyID))?.name || (selectedMotoForEdit.company_id || selectedMotoForEdit.companyID)}
-        </p>
-      )}
-
       <div className="flex gap-3 pt-2">
         <button
           className="flex-1 bg-gray-200 py-2 rounded"
@@ -718,12 +719,6 @@ return (
           ))}
         </select>
       )}
-      {isManager && (
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Empresa: {companies.find((c) => c.id === companyId)?.name || companyId}
-        </p>
-      )}
-
       <div className="flex gap-3 pt-2">
         <button
           className="flex-1 bg-gray-200 py-2 rounded"

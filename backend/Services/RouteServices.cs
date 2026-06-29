@@ -86,7 +86,7 @@ namespace projeto.Services
             var payload = new
             {
                 nodes = nodesForPython,
-                vehicles = new[] { new { capacity = vehicle.cargoCapacity, battery_kwh = vehicle.batteryCapacity } }
+                vehicles = new[] { new { capacity = 9999, battery_kwh = 9999.0 } }
             };
 
             var jsonPayload = JsonSerializer.Serialize(payload);

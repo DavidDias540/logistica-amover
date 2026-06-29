@@ -38,8 +38,7 @@ namespace projeto.Data.Models
         public int? planID { get; set; }
         public int? vehicleID { get; set; }
 
-        [Required]
-        public int serviceID { get; set; }
+        public int? serviceID { get; set; }
 
         [Required]
         public int clientID { get; set; }

@@ -146,7 +146,7 @@ const TaskAssignmentPage: React.FC<Props> = () => {
       const { data } = await apiClient.get("/api/Task");
       if (data) {
         const mappedTasks = data
-          .filter((t: any) => t.status !== 'Routed' && t.status !== 'Finished' && t.status !== 'Cancelada' && t.status !== 'finished' && t.status !== 'completed' && t.status !== 'concluída')
+          .filter((t: any) => t.status !== 'Finished' && t.status !== 'Cancelada' && t.status !== 'finished' && t.status !== 'completed' && t.status !== 'concluída')
           .map((t: any) => ({
           id: t.id || t.ID,
           title: t.type || t.description || 'Sem título',
@@ -158,7 +158,7 @@ const TaskAssignmentPage: React.FC<Props> = () => {
           serviceid: t.serviceID || t.serviceId,
           motorcycleid: t.vehicleID || t.vehicleId || null,
           recurrence: t.recurrence || 'Pontual',
-          status: t.status === 'Unassigned' ? 'POR CONCLUIR' : 'CONCLUÍDO',
+          status: t.status === 'Unassigned' ? 'POR CONCLUIR' : (t.status === 'Routed' ? 'EM ROTA' : 'ATRIBUÍDO'),
           notes: t.description || '',
           instructions: t.instructions || '',
           street: t.street || '',

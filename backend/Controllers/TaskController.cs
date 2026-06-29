@@ -48,9 +48,9 @@ namespace projeto.Controllers
                 var currentUser = GetCurrentUser();
                 if (currentUser == null) return Unauthorized("Utilizador autenticado não encontrado.");
 
-                if (IsManager(currentUser))
+                if (IsManager(currentUser) && _t.ServiceID.HasValue)
                 {
-                    var service = _context.services.Find(_t.ServiceID);
+                    var service = _context.services.Find(_t.ServiceID.Value);
                     if (service == null || service.companyID != currentUser.companyID)
                     {
                         return Forbid("Não pode criar tarefas para serviços de outra empresa.");
@@ -59,20 +59,37 @@ namespace projeto.Controllers
 
                 Task t = new Task
                 {
-                    type = _t.Type,
-                    description = _t.Description,
+                    type = _t.Type ?? "Nova Tarefa",
+                    description = _t.Description ?? "Sem descrição",
                     serviceID = _t.ServiceID,
                     clientID = _t.ClientID,
                     status = "Unassigned",
-                    creationDate = DateTime.UtcNow
+                    creationDate = DateTime.UtcNow,
+                    deadline = _t.deadline,
+                    availableTimeStart = _t.availableTimeStart,
+                    availableTimeEnds = _t.availableTimeEnds,
+                    street = _t.street,
+                    door_number = _t.door_number,
+                    floor = _t.floor,
+                    postal_code = _t.postal_code,
+                    city = _t.city,
+                    instructions = _t.instructions,
+                    notes = _t.notes,
+                    priority = _t.priority
                 };
-                _db.CreateTask(t, _t.ServiceID, _t.ClientID);
+                
+                // If the frontend does not send the TimeSpans correctly, just leave them out for now
+                // since the payload from the frontend currently sends DateTime strings for them, 
+                // we should probably not map them directly if they crash. Wait! 
+                // Actually the frontend doesn't send availableTimeStart in handleAddTask! So it's fine.
+
+                _db.CreateTask(t, _t.ServiceID ?? 0, _t.ClientID);
                 return Ok(t);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro a criar tarefa.");
-                return StatusCode(500, "Erro interno do servidor.");
+                return StatusCode(500, "Erro interno.");
             }
         }
 
@@ -249,10 +266,22 @@ namespace projeto.Controllers
 
         public class TaskDTO
         {
-            public string Type { get; set; } = "";
-            public string Description { get; set; } = "";
-            public int ServiceID { get; set; }
+            public string? Type { get; set; } = "Nova Tarefa";
+            public string? Description { get; set; } = "Sem descrição";
+            public int? ServiceID { get; set; }
             public int ClientID { get; set; }
+            
+            public DateTime? deadline { get; set; }
+            public TimeSpan? availableTimeStart { get; set; }
+            public TimeSpan? availableTimeEnds { get; set; }
+            public string? street { get; set; }
+            public string? door_number { get; set; }
+            public string? floor { get; set; }
+            public string? postal_code { get; set; }
+            public string? city { get; set; }
+            public string? instructions { get; set; }
+            public string? notes { get; set; }
+            public string? priority { get; set; }
         }
     }
 }

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+Logistica_Eco.tar
+amover_frontend_backup.tar
+clone.sql
+data_backup.sql
+backend/bin/
+backend/obj/
+builds_móvel/
+*.apk

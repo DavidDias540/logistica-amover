@@ -36,6 +36,19 @@ class AssistanceViewModel : ViewModel() {
     fun sendMessage(requestId: Int, text: String, senderName: String, onDone: () -> Unit = {}) {
         viewModelScope.launch {
             try {
+                val reqIndex = requests.indexOfFirst { it.id == requestId }
+                if (reqIndex != -1) {
+                    val req = requests[reqIndex]
+                    val newMsg = AssistanceMessageRemote(
+                        id = (0..100000).random(),
+                        text = text,
+                        sender = senderName,
+                        timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    )
+                    val newMessages = req.messages.toMutableList().apply { add(newMsg) }
+                    requests[reqIndex] = req.copy(messages = newMessages)
+                }
+
                 val message = AssistanceMessageCreateDto(
                     text = text,
                     sender = senderName

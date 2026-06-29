@@ -261,9 +261,9 @@ namespace projeto.Controllers
 
                 // Manager não pode promover ninguém a admin ou manager
                 var newRole = (user.Role != null && user.Role.ToLower() == "driver") ? "motorista" : (user.Role ?? existingUser.role);
-                if (IsManager(currentUser) && (newRole.ToLower() == "admin" || newRole.ToLower() == "manager"))
+                if (IsManager(currentUser) && newRole.ToLower() != existingUser.role?.ToLower() && (newRole.ToLower() == "admin" || newRole.ToLower() == "manager"))
                 {
-                    return Forbid("Gestor não pode atribuir papéis de administrador ou gestor.");
+                    return Forbid("Gestor não pode promover utilizadores a administrador ou gestor.");
                 }
 
                 User u = new User

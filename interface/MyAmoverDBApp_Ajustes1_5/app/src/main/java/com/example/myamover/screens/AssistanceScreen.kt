@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -80,24 +81,12 @@ fun AssistanceScreen(
     var newMessage by remember { mutableStateOf("") }
     val currentName = TokenManager.getUserName() ?: "Condutor"
 
+    BackHandler(enabled = selectedRequestId != null) {
+        selectedRequestId = null
+    }
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Assistance / Chat") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (selectedRequestId != null) {
-                            selectedRequestId = null
-                        } else {
-                            navController.popBackStack()
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        }
+
     ) { padding ->
         Box(
             modifier = modifier
@@ -228,7 +217,8 @@ private fun ChatView(
         ) {
             val sortedMessages = request.messages.sortedBy { it.timestamp }
             items(sortedMessages, key = { it.id }) { message ->
-                val isOwn = message.sender.startsWith(currentName)
+                val cleanCurrentName = currentName.trim()
+                val isOwn = message.sender.contains(cleanCurrentName, ignoreCase = true) || (cleanCurrentName.contains("manager", ignoreCase = true) && message.sender.contains("manager", ignoreCase = true))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = if (isOwn) Arrangement.End else Arrangement.Start

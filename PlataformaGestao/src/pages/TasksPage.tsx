@@ -133,7 +133,7 @@ const [newClient, setNewClient] = useState({
   city: "",
 });
 const filteredServices = services.filter(
-  s => String(s.company_id) === selectedCompany
+  s => String(s.company_id) === selectedCompany || String(s.companyID) === selectedCompany || String(s.CompanyId) === selectedCompany
 );
 
 const filteredClients = clients.filter(c => {
@@ -244,7 +244,7 @@ function resetTaskForm() {
         const mappedTasks = data.map((t: any) => ({
           id: t.id || t.ID,
           title: t.type || t.description || 'Sem título',
-          date: t.creationDate ? t.creationDate.split('T')[0] : (t.deadline ? t.deadline.split('T')[0] : new Date().toISOString().split('T')[0]),
+          date: t.deadline ? t.deadline.split('T')[0] : (t.creationDate ? t.creationDate.split('T')[0] : new Date().toISOString().split('T')[0]),
           priority: t.priority || 'MÉDIA',
           time: t.availableTimeStart || '',
           clientid: t.clientID || t.clientId,
@@ -343,16 +343,19 @@ async function handleAddClientFromTask() {
 }
 
 
-async function handleUpdateTask() {
-  if (!editingTaskId) return;
+  async function handleUpdateTask() {
+    if (!editingTaskId) return;
+  
+    try {
+      const selectedService = services.find(s => (s.ID || s.id) === Number(newTask.serviceid));
+      const fallbackTitle = selectedService ? selectedService.category : "Nova Tarefa";
 
-  try {
-    await apiClient.put(`/api/Task/${editingTaskId}`, {
-      id: editingTaskId,
-      type: newTask.title || "Sem título",
-      description: newTask.notes || "Sem descrição",
-      serviceID: newTask.serviceid ? Number(newTask.serviceid) : 1,
-      clientID: newTask.clientid ? Number(newTask.clientid) : 1,
+      await apiClient.put(`/api/Task/${editingTaskId}`, {
+        id: editingTaskId,
+        type: fallbackTitle,
+        description: newTask.notes || "Sem descrição",
+        serviceID: newTask.serviceid ? Number(newTask.serviceid) : null,
+        clientID: newTask.clientid ? Number(newTask.clientid) : null,
       status: "Unassigned",
       deadline: newTask.date ? new Date(newTask.date).toISOString() : null,
       creationDate: new Date().toISOString(),
@@ -377,17 +380,21 @@ async function handleUpdateTask() {
 }
 
 async function handleAddTask() {
-  if (!newTask.title || !newTask.clientid || !newTask.serviceid) {
-    alert("Por favor preencha os campos obrigatórios (Título, Cliente, Serviço).");
+  if (!newTask.clientid || !newTask.date || !newTask.street) {
+    alert("Por favor preencha os campos obrigatórios (Cliente, Data, Morada).");
     return;
   }
 
   try {
+    const selectedService = services.find(s => (s.ID || s.id) === Number(newTask.serviceid));
+    const fallbackTitle = selectedService ? selectedService.category : "Nova Tarefa";
+
     const { data } = await apiClient.post("/api/Task", {
-      Type: newTask.title,
+      Type: fallbackTitle,
       Description: newTask.notes || "Sem descrição",
-      ServiceID: Number(newTask.serviceid),
+      ServiceID: newTask.serviceid ? Number(newTask.serviceid) : null,
       ClientID: Number(newTask.clientid),
+      deadline: newTask.date ? new Date(newTask.date).toISOString() : null,
       street: newTask.street || null,
       door_number: newTask.door_number || null,
       floor: newTask.floor || null,
@@ -800,7 +807,7 @@ async function handleAddTask() {
           <option value="">Selecionar serviço</option>
 
           {filteredServices.map((s) => (
-            <option key={s.id} value={s.id}>
+            <option key={s.ID || s.id} value={s.ID || s.id}>
               {s.description}
             </option>
           ))}

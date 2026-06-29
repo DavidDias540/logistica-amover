@@ -19,11 +19,14 @@ namespace projeto.Services
             try
             {
                 t.creationDate = DateTime.Now;
-                var service = _context.services.Find(sID);
-                if (service == null)
-                    throw new Exception("Serviço não encontrado.");
-
-                t.service = service;
+                
+                if (sID != 0)
+                {
+                    var service = _context.services.Find(sID);
+                    if (service == null)
+                        throw new Exception("Serviço não encontrado.");
+                    t.service = service;
+                }
 
                 var client = _context.clients.Find(cID);
                 if (client == null)

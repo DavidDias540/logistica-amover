@@ -162,20 +162,17 @@ namespace projeto.Controllers
                     return BadRequest("Não pode atribuir condutor a uma mota sem empresa.");
                 }
 
-                Vehicle v = new Vehicle
-                {
-                    ID = id,
-                    VID = vehicle.VID,
-                    name = vehicle.name,
-                    brand = vehicle.brand,
-                    model = vehicle.model,
-                    status = vehicle.status,
-                    batteryCapacity = vehicle.batteryCapacity,
-                    cargoCapacity = vehicle.cargoCapacity,
-                    ownerID = vehicle.ownerID,
-                    companyID = effectiveCompanyId
-                };
-                return _db.EditVehicle(v) ? Ok(new { message = "Veículo atualizado com sucesso." }) : NotFound("Veículo não encontrado.");
+                existing.VID = vehicle.VID;
+                existing.name = vehicle.name;
+                existing.brand = vehicle.brand;
+                existing.model = vehicle.model;
+                existing.status = vehicle.status;
+                existing.batteryCapacity = vehicle.batteryCapacity;
+                existing.cargoCapacity = vehicle.cargoCapacity;
+                existing.ownerID = vehicle.ownerID;
+                existing.companyID = effectiveCompanyId;
+                
+                return _db.EditVehicle(existing) ? Ok(new { message = "Veículo atualizado com sucesso." }) : NotFound("Veículo não encontrado.");
             }
             catch (Exception ex)
             {
