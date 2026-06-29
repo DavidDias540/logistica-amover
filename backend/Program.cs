@@ -137,21 +137,36 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-// Aplicar as migrações automaticamente à base de dados nova no arranque
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AMoverContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try
+    // Aplicar as migrações automaticamente à base de dados nova no arranque
+    using (var scope = app.Services.CreateScope())
     {
-        db.Database.Migrate();
-        logger.LogInformation("Migrações verificadas/aplicadas com sucesso.");
+        var db = scope.ServiceProvider.GetRequiredService<AMoverContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        int retries = 5;
+        while (retries > 0)
+        {
+            try
+            {
+                db.Database.Migrate();
+                logger.LogInformation("Migrações verificadas/aplicadas com sucesso.");
+                break; // Sucesso, sai do loop
+            }
+            catch (Exception ex)
+            {
+                retries--;
+                if (retries == 0)
+                {
+                    logger.LogError(ex, "Erro fatal: Não foi possível ligar à base de dados após várias tentativas. A aplicação vai arrancar, mas pode não funcionar.");
+                }
+                else
+                {
+                    logger.LogWarning($"A base de dados ainda não está pronta. Tentativas restantes: {retries}. A aguardar 5 segundos...");
+                    System.Threading.Thread.Sleep(5000);
+                }
+            }
+        }
     }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Erro ao aplicar migrações no arranque. A base de dados pode já existir ou ter uma estrutura manual. A aplicação vai continuar a arrancar.");
-    }
-}
 
 // Configure pipeline HTTP
 if (app.Environment.IsDevelopment())
