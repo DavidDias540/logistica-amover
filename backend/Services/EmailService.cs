@@ -64,7 +64,7 @@ namespace projeto.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao enviar email para {To}", toEmail);
-                throw;
+                // Não atirar excepção para não rebentar a API quando as credenciais de email (SendGrid) não estão configuradas
             }
         }
     }
