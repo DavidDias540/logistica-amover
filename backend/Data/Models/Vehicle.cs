@@ -14,6 +14,9 @@ namespace projeto.Data.Models
         public string status { get; set; } = "Disponível";
         public float batteryCapacity { get; set; }
         public float cargoCapacity { get; set; }
+        public string? plate { get; set; }
+        public string? maintenance_reason { get; set; }
+        public DateTime? maintenance_date { get; set; }
 
         //FK
         public int? ownerID { get; set; } // User n - 1

@@ -22,6 +22,10 @@ namespace projeto.Data.Models
         public bool is_active { get; set; } = true;
         public bool RequiresPasswordChange { get; set; } = false;
 
+        public Guid? auth_user_id { get; set; }
+        public string? nif { get; set; }
+        public DateTime created_at { get; set; } = DateTime.UtcNow;
+
         //FK
 
         public int? companyID { get; set; }

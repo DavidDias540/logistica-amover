@@ -28,20 +28,22 @@ namespace AMoVeRLogistica.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "clients",
+                name: "canceledRouteLogs",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    name = table.Column<string>(type: "text", nullable: false),
-                    nif = table.Column<string>(type: "text", nullable: false),
-                    address = table.Column<string>(type: "text", nullable: false),
-                    phone = table.Column<string>(type: "text", nullable: false),
-                    email = table.Column<string>(type: "text", nullable: false)
+                    RouteGroupId = table.Column<string>(type: "text", nullable: false),
+                    VehicleID = table.Column<int>(type: "integer", nullable: false),
+                    CancelationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Reason = table.Column<string>(type: "text", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: false),
+                    ReturnedToUnassigned = table.Column<bool>(type: "boolean", nullable: false),
+                    TaskIds = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_clients", x => x.ID);
+                    table.PrimaryKey("PK_canceledRouteLogs", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -68,7 +70,8 @@ namespace AMoVeRLogistica.Migrations
                     longintude = table.Column<float>(type: "real", nullable: false),
                     address = table.Column<string>(type: "text", nullable: false),
                     availableTimeStart = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    availableTimeEnds = table.Column<TimeSpan>(type: "interval", nullable: true)
+                    availableTimeEnds = table.Column<TimeSpan>(type: "interval", nullable: true),
+                    status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,6 +93,34 @@ namespace AMoVeRLogistica.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_messageLogs", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "clients",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    nif = table.Column<string>(type: "text", nullable: false),
+                    address = table.Column<string>(type: "text", nullable: false),
+                    street = table.Column<string>(type: "text", nullable: true),
+                    door_number = table.Column<string>(type: "text", nullable: true),
+                    floor = table.Column<string>(type: "text", nullable: true),
+                    postal_code = table.Column<string>(type: "text", nullable: true),
+                    city = table.Column<string>(type: "text", nullable: true),
+                    phone = table.Column<string>(type: "text", nullable: false),
+                    email = table.Column<string>(type: "text", nullable: false),
+                    companyID = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_clients", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_clients_companies_companyID",
+                        column: x => x.companyID,
+                        principalTable: "companies",
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -123,6 +154,16 @@ namespace AMoVeRLogistica.Migrations
                     email = table.Column<string>(type: "text", nullable: false),
                     password = table.Column<string>(type: "text", nullable: false),
                     role = table.Column<string>(type: "text", nullable: false),
+                    driverLicense = table.Column<string>(type: "text", nullable: true),
+                    citizenCard = table.Column<string>(type: "text", nullable: true),
+                    phone = table.Column<string>(type: "text", nullable: true),
+                    address = table.Column<string>(type: "text", nullable: true),
+                    photoUrl = table.Column<string>(type: "text", nullable: true),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    RequiresPasswordChange = table.Column<bool>(type: "boolean", nullable: false),
+                    auth_user_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    nif = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     companyID = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -158,6 +199,28 @@ namespace AMoVeRLogistica.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "assistanceRequests",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    reason = table.Column<string>(type: "text", nullable: false),
+                    subject = table.Column<string>(type: "text", nullable: false),
+                    date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TargetUserID = table.Column<int>(type: "integer", nullable: true),
+                    status = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_assistanceRequests", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_assistanceRequests_users_TargetUserID",
+                        column: x => x.TargetUserID,
+                        principalTable: "users",
+                        principalColumn: "ID");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Plan",
                 columns: table => new
                 {
@@ -184,13 +247,26 @@ namespace AMoVeRLogistica.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     VID = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    brand = table.Column<string>(type: "text", nullable: false),
+                    model = table.Column<string>(type: "text", nullable: false),
+                    status = table.Column<string>(type: "text", nullable: false),
                     batteryCapacity = table.Column<float>(type: "real", nullable: false),
                     cargoCapacity = table.Column<float>(type: "real", nullable: false),
-                    ownerID = table.Column<int>(type: "integer", nullable: true)
+                    plate = table.Column<string>(type: "text", nullable: true),
+                    maintenance_reason = table.Column<string>(type: "text", nullable: true),
+                    maintenance_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ownerID = table.Column<int>(type: "integer", nullable: true),
+                    companyID = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_vehicles", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_vehicles_companies_companyID",
+                        column: x => x.companyID,
+                        principalTable: "companies",
+                        principalColumn: "ID");
                     table.ForeignKey(
                         name: "FK_vehicles_users_ownerID",
                         column: x => x.ownerID,
@@ -224,6 +300,50 @@ namespace AMoVeRLogistica.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "assistanceMessages",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AssistanceRequestID = table.Column<int>(type: "integer", nullable: false),
+                    text = table.Column<string>(type: "text", nullable: false),
+                    sender = table.Column<string>(type: "text", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_assistanceMessages", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_assistanceMessages_assistanceRequests_AssistanceRequestID",
+                        column: x => x.AssistanceRequestID,
+                        principalTable: "assistanceRequests",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "maintenances",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    motorcycleid = table.Column<int>(type: "integer", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: false),
+                    date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    resolved = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_maintenances", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_maintenances_vehicles_motorcycleid",
+                        column: x => x.motorcycleid,
+                        principalTable: "vehicles",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tasks",
                 columns: table => new
                 {
@@ -239,8 +359,17 @@ namespace AMoVeRLogistica.Migrations
                     status = table.Column<string>(type: "text", nullable: false),
                     userID = table.Column<int>(type: "integer", nullable: true),
                     planID = table.Column<int>(type: "integer", nullable: true),
+                    vehicleID = table.Column<int>(type: "integer", nullable: true),
                     serviceID = table.Column<int>(type: "integer", nullable: false),
-                    clientID = table.Column<int>(type: "integer", nullable: false)
+                    clientID = table.Column<int>(type: "integer", nullable: false),
+                    street = table.Column<string>(type: "text", nullable: true),
+                    door_number = table.Column<string>(type: "text", nullable: true),
+                    floor = table.Column<string>(type: "text", nullable: true),
+                    postal_code = table.Column<string>(type: "text", nullable: true),
+                    city = table.Column<string>(type: "text", nullable: true),
+                    instructions = table.Column<string>(type: "text", nullable: true),
+                    notes = table.Column<string>(type: "text", nullable: true),
+                    priority = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -269,27 +398,34 @@ namespace AMoVeRLogistica.Migrations
                         principalTable: "users",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_tasks_vehicles_vehicleID",
+                        column: x => x.vehicleID,
+                        principalTable: "vehicles",
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
                 name: "LocationNodeTask",
                 columns: table => new
                 {
-                    NodesID = table.Column<int>(type: "integer", nullable: false),
-                    tasksID = table.Column<int>(type: "integer", nullable: false)
+                    NodeID = table.Column<int>(type: "integer", nullable: false),
+                    TaskID = table.Column<int>(type: "integer", nullable: false),
+                    stopOrder = table.Column<int>(type: "integer", nullable: false),
+                    RouteGroupId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LocationNodeTask", x => new { x.NodesID, x.tasksID });
+                    table.PrimaryKey("PK_LocationNodeTask", x => new { x.NodeID, x.TaskID });
                     table.ForeignKey(
-                        name: "FK_LocationNodeTask_LocationNode_NodesID",
-                        column: x => x.NodesID,
+                        name: "FK_LocationNodeTask_LocationNode_NodeID",
+                        column: x => x.NodeID,
                         principalTable: "LocationNode",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LocationNodeTask_tasks_tasksID",
-                        column: x => x.tasksID,
+                        name: "FK_LocationNodeTask_tasks_TaskID",
+                        column: x => x.TaskID,
                         principalTable: "tasks",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
@@ -306,9 +442,29 @@ namespace AMoVeRLogistica.Migrations
                 column: "targetsID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LocationNodeTask_tasksID",
+                name: "IX_assistanceMessages_AssistanceRequestID",
+                table: "assistanceMessages",
+                column: "AssistanceRequestID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_assistanceRequests_TargetUserID",
+                table: "assistanceRequests",
+                column: "TargetUserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_clients_companyID",
+                table: "clients",
+                column: "companyID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LocationNodeTask_TaskID",
                 table: "LocationNodeTask",
-                column: "tasksID");
+                column: "TaskID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_maintenances_motorcycleid",
+                table: "maintenances",
+                column: "motorcycleid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Plan_userID",
@@ -341,8 +497,18 @@ namespace AMoVeRLogistica.Migrations
                 column: "userID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_tasks_vehicleID",
+                table: "tasks",
+                column: "vehicleID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_users_companyID",
                 table: "users",
+                column: "companyID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicles_companyID",
+                table: "vehicles",
                 column: "companyID");
 
             migrationBuilder.CreateIndex(
@@ -361,16 +527,25 @@ namespace AMoVeRLogistica.Migrations
                 name: "apiKeys");
 
             migrationBuilder.DropTable(
+                name: "assistanceMessages");
+
+            migrationBuilder.DropTable(
+                name: "canceledRouteLogs");
+
+            migrationBuilder.DropTable(
                 name: "LocationNodeTask");
+
+            migrationBuilder.DropTable(
+                name: "maintenances");
 
             migrationBuilder.DropTable(
                 name: "messageLogs");
 
             migrationBuilder.DropTable(
-                name: "vehicles");
+                name: "alerts");
 
             migrationBuilder.DropTable(
-                name: "alerts");
+                name: "assistanceRequests");
 
             migrationBuilder.DropTable(
                 name: "LocationNode");
@@ -386,6 +561,9 @@ namespace AMoVeRLogistica.Migrations
 
             migrationBuilder.DropTable(
                 name: "services");
+
+            migrationBuilder.DropTable(
+                name: "vehicles");
 
             migrationBuilder.DropTable(
                 name: "users");

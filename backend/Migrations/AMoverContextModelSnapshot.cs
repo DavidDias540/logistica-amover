@@ -525,11 +525,17 @@ namespace AMoVeRLogistica.Migrations
                     b.Property<string>("address")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("auth_user_id")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("citizenCard")
                         .HasColumnType("text");
 
                     b.Property<int?>("companyID")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("driverLicense")
                         .HasColumnType("text");
@@ -543,6 +549,9 @@ namespace AMoVeRLogistica.Migrations
 
                     b.Property<string>("name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("nif")
                         .HasColumnType("text");
 
                     b.Property<string>("password")
@@ -591,6 +600,12 @@ namespace AMoVeRLogistica.Migrations
                     b.Property<int?>("companyID")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("maintenance_date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("maintenance_reason")
+                        .HasColumnType("text");
+
                     b.Property<string>("model")
                         .IsRequired()
                         .HasColumnType("text");
@@ -601,6 +616,9 @@ namespace AMoVeRLogistica.Migrations
 
                     b.Property<int?>("ownerID")
                         .HasColumnType("integer");
+
+                    b.Property<string>("plate")
+                        .HasColumnType("text");
 
                     b.Property<string>("status")
                         .IsRequired()
