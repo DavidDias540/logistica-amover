@@ -43,6 +43,15 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
 
 
 
+  const loadCompanies = async () => {
+    try {
+      const { data } = await apiClient.get("/api/Company");
+      setCompanies(data.$values || data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -67,9 +76,6 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
           }
           setDbDrivers(onlyDrivers);
         }
-
-        const { data: companiesData } = await apiClient.get('/api/Company');
-        if (companiesData) setCompanies(companiesData.$values || companiesData);
       } catch (error) {
         console.error(error);
       }
@@ -77,6 +83,7 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
     }
 
     loadData();
+    loadCompanies();
   }, [isManager, companyId]);
 
   // Obter assignment ativo para uma mota (agora usamos o ownerID)

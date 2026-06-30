@@ -61,11 +61,19 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 
 
+  const loadCompanies = async () => {
+    try {
+      const { data } = await apiClient.get("/api/Company");
+      setCompanies(data.$values || data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       try {
         const { data: driversData } = await apiClient.get("/api/User?role=driver"); // Or similar backend endpoint
-        const { data: companiesData } = await apiClient.get("/api/Company");
 
         let allUsers = driversData.$values || driversData || [];
         let onlyDrivers = allUsers.filter((u: any) => {
@@ -78,14 +86,14 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         }
         
         setDrivers(onlyDrivers);
-        setCompanies(companiesData.$values || companiesData || []);
       } catch (error) {
         console.error(error);
       }
     }
 
     loadData();
-  }, []);
+    loadCompanies();
+  }, [isManager, companyId]);
 
 
  

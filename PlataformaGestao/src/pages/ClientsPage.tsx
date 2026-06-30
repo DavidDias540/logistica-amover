@@ -52,9 +52,18 @@ const ClientsPage: React.FC = () => {
 
   
 
-  // CARREGAR CLIENTES
+  const loadCompanies = async () => {
+    try {
+      const { data } = await apiClient.get("/api/Company");
+      setCompanies(data.$values || data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     async function load() {
+      setLoading(true);
       try {
         const { data } = await apiClient.get("/api/Client");
         if (data) {
@@ -76,9 +85,6 @@ const ClientsPage: React.FC = () => {
         } else {
           setClients([]);
         }
-
-        const { data: companiesData } = await apiClient.get("/api/Company");
-        if (companiesData) setCompanies(companiesData.$values || companiesData);
       } catch (error) {
         console.error(error);
       }
@@ -86,6 +92,7 @@ const ClientsPage: React.FC = () => {
     }
 
     load();
+    loadCompanies();
   }, []);
 
   // ADICIONAR CLIENTE
