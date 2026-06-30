@@ -23,8 +23,8 @@ const CompaniesPage: React.FC = () => {
   const loadCompanies = async () => {
     try {
       const { data } = await apiClient.get("/api/Company");
-      // Sort manually since API might not
-      const sorted = (data || []).sort((a: any, b: any) => a.name?.localeCompare(b.name));
+      const list = data.$values || data || [];
+      const sorted = list.sort((a: any, b: any) => a.name?.localeCompare(b.name));
       setCompanies(sorted);
     } catch (error) {
       console.error(error);
@@ -34,8 +34,8 @@ const CompaniesPage: React.FC = () => {
   const loadServices = async (companyId: number) => {
     try {
       const { data } = await apiClient.get(`/api/Service`);
-      // Filter manually if the API doesn't support query params, but assume we filter locally if needed
-      const filtered = (data || []).filter((s: any) => s.company_id === companyId || s.CompanyId === companyId || s.companyID === companyId || s.companyId === companyId);
+      const servicesArray = data.$values || data || [];
+      const filtered = servicesArray.filter((s: any) => s.company_id === companyId || s.CompanyId === companyId || s.companyID === companyId || s.companyId === companyId);
       filtered.sort((a: any, b: any) => a.category?.localeCompare(b.category));
       setServices(filtered);
     } catch (error) {

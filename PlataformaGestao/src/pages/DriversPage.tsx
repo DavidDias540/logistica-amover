@@ -67,7 +67,7 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { data: driversData } = await apiClient.get("/api/User?role=driver"); // Or similar backend endpoint
         const { data: companiesData } = await apiClient.get("/api/Company");
 
-        let allUsers = driversData || [];
+        let allUsers = driversData.$values || driversData || [];
         let onlyDrivers = allUsers.filter((u: any) => {
           const userRole = (u.role || u.Role || "").toLowerCase();
           return userRole === "driver" || userRole === "motorista";
@@ -78,7 +78,7 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         }
         
         setDrivers(onlyDrivers);
-        setCompanies(companiesData || []);
+        setCompanies(companiesData.$values || companiesData || []);
       } catch (error) {
         console.error(error);
       }

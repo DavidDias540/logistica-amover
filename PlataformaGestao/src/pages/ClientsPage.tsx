@@ -58,13 +58,14 @@ const ClientsPage: React.FC = () => {
       try {
         const { data } = await apiClient.get("/api/Client");
         if (data) {
-          const mappedClients = data.map((c: any) => ({
+          const clientsArray = data.$values || data;
+          let mappedClients = clientsArray.map((c: any) => ({
             id: c.id || c.ID,
-            name: c.name,
-            nif: c.nif,
-            phone: c.phone,
-            email: c.email,
-            street: c.street || c.address || '',
+            name: c.name || '',
+            nif: c.nif || '',
+            contact: c.contact || '',
+            email: c.email || '',
+            street: c.street || '',
             door_number: c.door_number || '',
             floor: c.floor || '',
             postal_code: c.postal_code || '',
@@ -77,7 +78,7 @@ const ClientsPage: React.FC = () => {
         }
 
         const { data: companiesData } = await apiClient.get("/api/Company");
-        if (companiesData) setCompanies(companiesData);
+        if (companiesData) setCompanies(companiesData.$values || companiesData);
       } catch (error) {
         console.error(error);
       }

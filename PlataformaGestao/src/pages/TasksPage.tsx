@@ -271,7 +271,7 @@ function resetTaskForm() {
   async function loadCompanies() {
     try {
       const { data } = await apiClient.get("/api/Company");
-      setCompanies(data || []);
+      setCompanies(data.$values || data || []);
     } catch (error) {
       console.error(error);
     }
@@ -280,7 +280,10 @@ function resetTaskForm() {
   async function loadClients() {
     try {
       const { data } = await apiClient.get('/api/Client');
-      if (data) setClients(data as Client[]);
+      if (data) {
+        const clientsArray = data.$values || data;
+        setClients(clientsArray as Client[]);
+      }
     } catch (e) {
       console.error(e);
     }

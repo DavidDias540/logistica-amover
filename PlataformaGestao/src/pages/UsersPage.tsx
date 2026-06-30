@@ -23,7 +23,7 @@ const UsersPage: React.FC = () => {
   const loadCompanies = async () => {
     try {
       const { data } = await apiClient.get("/api/Company");
-      setCompanies(data || []);
+      setCompanies(data.$values || data || []);
     } catch (error) {
       console.error(error);
     }
@@ -35,7 +35,8 @@ const UsersPage: React.FC = () => {
 
     try {
       const { data } = await apiClient.get("/api/User");
-      const managers = (data || []).filter((u: any) => u.role === "manager" || u.Role === "manager" || u.role === undefined); 
+      const usersArray = data.$values || data || [];
+      const managers = usersArray.filter((u: any) => u.role === "manager" || u.Role === "manager" || u.role === undefined); 
       setUsers(managers);
     } catch (error) {
       console.error(error);
