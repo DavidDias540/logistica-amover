@@ -48,15 +48,17 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
       try {
         const { data: motos } = await apiClient.get('/api/Vehicle');
         if (motos) {
+          const motosArray = motos.$values || motos;
           const filteredMotos = isManager
-            ? motos.filter((m: any) => m.companyID === companyId || m.company_id === companyId)
-            : motos;
+            ? motosArray.filter((m: any) => m.companyID === companyId || m.company_id === companyId)
+            : motosArray;
           setDbMotorcycles(filteredMotos);
         }
 
         const { data: driversData } = await apiClient.get('/api/User');
         if (driversData) {
-          let onlyDrivers = driversData.filter((u: any) => {
+          const driversArray = driversData.$values || driversData;
+          let onlyDrivers = driversArray.filter((u: any) => {
             const role = (u.role || u.Role || "").toLowerCase();
             return role === "driver" || role === "motorista";
           });
@@ -67,7 +69,7 @@ const [maintenanceReason, setMaintenanceReason] = useState("");
         }
 
         const { data: companiesData } = await apiClient.get('/api/Company');
-        if (companiesData) setCompanies(companiesData);
+        if (companiesData) setCompanies(companiesData.$values || companiesData);
       } catch (error) {
         console.error(error);
       }
